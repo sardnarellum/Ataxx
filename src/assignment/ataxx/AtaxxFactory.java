@@ -61,13 +61,14 @@ public class AtaxxFactory implements GameFactory {
 		return new DummyAIPlayer(createRandomPlayer(), 1000);
 	}
 
+	/**
+	 * By default, we have two players, X and O.
+	 */
 	@Override
 	public List<Piece> createDefaultPieces() {
 		List<Piece> pieces = new ArrayList<Piece>();
 		pieces.add(new Piece("X"));
 		pieces.add(new Piece("O"));
-		pieces.add(new Piece("B"));
-		pieces.add(new Piece("I"));
 		
 		return pieces;
 	}

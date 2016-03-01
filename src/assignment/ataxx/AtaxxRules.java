@@ -12,6 +12,14 @@ import es.ucm.fdi.tp.basecode.bgame.model.GameRules;
 import es.ucm.fdi.tp.basecode.bgame.model.Pair;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
+/**
+ * Rules for Ataxx game.
+ * <ul>
+ * <li>The game is played on an NxN board (with N>=5 and Nł2).</li>
+ * </ul>
+ * @author Müller András
+ *
+ */
 public class AtaxxRules implements GameRules {
 	
 	protected final Pair<State, Piece> gameInPlayResult =
@@ -19,6 +27,10 @@ public class AtaxxRules implements GameRules {
 	
 	private int dim;
 	
+	/**
+	 * Initializes AtaxxRuless class with the dimension of the row and columns of Ataxx table.
+	 * @param dim must be at least 5 and an odd number
+	 */
 	public AtaxxRules(int dim){
 		if (dim < 5){
 			throw new GameError("Dimension must be at least 5: " + dim);
@@ -38,7 +50,24 @@ public class AtaxxRules implements GameRules {
 
 	@Override
 	public Board createBoard(List<Piece> pieces) {
-		return new FiniteRectBoard(dim, dim);
+		FiniteRectBoard board = new FiniteRectBoard(dim, dim);		
+
+		board.setPosition(0, 0, pieces.get(0));
+		board.setPosition(dim - 1, dim - 1, pieces.get(0));
+		board.setPosition(0, dim - 1, pieces.get(1));
+		board.setPosition(dim - 1, 0, pieces.get(1));
+		
+		if (pieces.size() >= 3){
+			board.setPosition(dim / 2, 0, pieces.get(2));
+			board.setPosition(dim / 2, dim - 1, pieces.get(2));
+		}
+		
+		if (pieces.size() == 4){
+			board.setPosition(0, dim / 2, pieces.get(3));
+			board.setPosition(dim - 1, dim / 2, pieces.get(3));			
+		}
+		
+		return board;
 	}
 
 	@Override
@@ -46,11 +75,17 @@ public class AtaxxRules implements GameRules {
 		return pieces.get(0);
 	}
 
+	/**
+	 * Number of players can be 2, 3, or 4.
+	 */
 	@Override
 	public int minPlayers() {
 		return 2;
 	}
 
+	/**
+	 * Number of players can be 2, 3, or 4.
+	 */
 	@Override
 	public int maxPlayers() {
 		return 4;
@@ -88,7 +123,7 @@ public class AtaxxRules implements GameRules {
 		return moves;
 	}
 	
-	private boolean inRange(int i, int j, Board board, List<Piece> playersPieces){
+	private boolean inRange(int row, int col, Board board, List<Piece> playersPieces){
 		
 		return true;
 	}
