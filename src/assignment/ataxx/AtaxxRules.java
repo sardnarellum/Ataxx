@@ -111,21 +111,35 @@ public class AtaxxRules implements GameRules {
 
 	@Override
 	public List<GameMove> validMoves(Board board, List<Piece> playersPieces, Piece turn) {
-		List <GameMove> moves = new ArrayList<GameMove>(); 
+		List <GameMove> moves = new ArrayList<GameMove>();		
 		
-		for (int i = 0; i < board.getRows(); ++i){
-			for (int j = 0; j < board.getCols(); ++j){
-				if (board.getPosition(i, j) == null && inRange(i, j, board, playersPieces)){
-					moves.add(new AtaxxMove(i, j, turn));
+		for (int row = 0; row < board.getRows(); ++row){
+			for (int col = 0; col < board.getCols(); ++col){
+				if (board.getPosition(row, col) == null && inRange(row, col, board, playersPieces)){
+					moves.add(new AtaxxMove(row, col, turn));
 				}
 			}
 		}
+		
 		return moves;
 	}
 	
 	private boolean inRange(int row, int col, Board board, List<Piece> playersPieces){
+		int n = row < board.getRows() - 2 ? row + 2 : board.getRows() - 1;
+		int m = row < board.getCols() - 2 ? col + 2 : board.getCols() - 1;
 		
-		return true;
+		for (int i = 1 < row ? row - 2 : 0; i <= n; ++i){			
+			for (int j = 1 < col ? col - 2 : 0; i <= m; ++j){
+				if (j < 0){
+					j = 0;
+				}
+				if (i == j){
+					++j;
+				}
+			}
+		}
+		
+		return false;
 	}
 
 }
