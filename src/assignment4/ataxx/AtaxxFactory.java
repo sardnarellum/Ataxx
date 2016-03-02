@@ -1,4 +1,4 @@
-package assignment.ataxx;
+package assignment4.ataxx;
 
 import java.util.ArrayList;
 import java.util.List;

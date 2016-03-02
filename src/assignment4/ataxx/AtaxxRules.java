@@ -1,4 +1,4 @@
-package assignment.ataxx;
+package assignment4.ataxx;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +26,7 @@ public class AtaxxRules implements GameRules {
 			new Pair<State, Piece>(State.InPlay, null);
 	
 	private int dim;
+	private int qObstacles;
 	
 	/**
 	 * Initializes AtaxxRuless class with the dimension of the row and columns of Ataxx table.
@@ -115,7 +116,7 @@ public class AtaxxRules implements GameRules {
 		
 		for (int row = 0; row < board.getRows(); ++row){
 			for (int col = 0; col < board.getCols(); ++col){
-				if (board.getPosition(row, col) == null && inRange(row, col, board, playersPieces)){
+				if (inRange(row, col, board, playersPieces)){
 					moves.add(new AtaxxMove(row, col, turn));
 				}
 			}

@@ -1,4 +1,4 @@
-package es.ucm.fdi.tp.basecode;
+package assignment4.ataxx;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -239,6 +239,11 @@ public class Main {
 	 * utiliza, por lo que siempre es {@code null}.
 	 */
 	private static AIAlgorithm aiPlayerAlg;
+	
+	/**
+	 * Number of quadrant of obstacles to be generated.
+	 */
+	private static Integer qObstacles = 0;
 
 	/**
 	 * Processes the command-line arguments and modify the fields of this
@@ -270,6 +275,7 @@ public class Main {
 																// --multiviews
 		cmdLineOptions.addOption(constructPlayersOption()); // -p or --players
 		cmdLineOptions.addOption(constructDimensionOption()); // -d or --dim
+		cmdLineOptions.addOption(constructObstaclesOption()); // -o or --obstacles
 
 		// parse the command line as provided in args
 		//
@@ -282,6 +288,7 @@ public class Main {
 			parseViewOption(line);
 			parseMultiViewOption(line);
 			parsePlayersOptions(line);
+			parseObstaclesOptions(line);
 
 			// if there are some remaining arguments, then something wrong is
 			// provided in the command line!
@@ -303,12 +310,35 @@ public class Main {
 	}
 
 	/**
+	 * Builds the obstacles (-o or --obstacles) CLI option.
+	 * @return CLI {@link Option} for the multiview option.
+	 */
+	private static Option constructObstaclesOption() {	
+		Option opt = new Option("o", "obstacles", true,
+				"Generate obstacles for each quadrant of the table.");
+		opt.setArgName("qty in a quadrant");
+		return opt;
+	}
+
+	private static void parseObstaclesOptions(CommandLine line) throws ParseException {
+		// TODO Auto-generated method stub
+		String oVal = line.getOptionValue("o");
+		if (null != oVal) {
+			try {
+				qObstacles = Integer.parseInt(oVal);
+			} catch (NumberFormatException e){
+				throw new ParseException("Invalid obstacles parameter: " + oVal);
+			}
+		}
+	}
+
+	/**
 	 * Builds the multiview (-m or --multiviews) CLI option.
 	 * 
 	 * <p>
 	 * Construye la opcion CLI -m.
 	 * 
-	 * @return CLI {@link {@link Option} for the multiview option.
+	 * @return CLI {@link Option} for the multiview option.
 	 */
 
 	private static Option constructMlutiViewOption() {
