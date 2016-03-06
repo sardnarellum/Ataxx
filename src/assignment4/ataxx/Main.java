@@ -243,7 +243,7 @@ public class Main {
 	/**
 	 * Number of quadrant of obstacles to be generated.
 	 */
-	private static Integer qObstacles = 0;
+	private static Integer qObstacles;
 
 	/**
 	 * Processes the command-line arguments and modify the fields of this
@@ -565,9 +565,13 @@ public class Main {
 			break;
 		case ATAXX:
 			if (dimRows != null && dimCols != null && dimRows == dimCols) {
-				gameFactory = new AtaxxFactory(dimRows);
+				gameFactory = qObstacles != null
+						? new AtaxxObstaclesFactory(qObstacles, dimRows)
+						: new AtaxxFactory(dimRows);
 			} else {
-				gameFactory = new AtaxxFactory();
+				gameFactory = qObstacles != null
+						? new AtaxxObstaclesFactory(qObstacles)
+						: new AtaxxFactory();
 			}
 			break;
 		default:

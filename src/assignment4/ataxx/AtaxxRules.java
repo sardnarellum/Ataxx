@@ -26,7 +26,6 @@ public class AtaxxRules implements GameRules {
 			new Pair<State, Piece>(State.InPlay, null);
 	
 	private int dim;
-	private int qObstacles;
 	
 	/**
 	 * Initializes AtaxxRuless class with the dimension of the row and columns of Ataxx table.

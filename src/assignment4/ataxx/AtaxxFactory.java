@@ -10,7 +10,6 @@ import es.ucm.fdi.tp.basecode.bgame.control.DummyAIPlayer;
 import es.ucm.fdi.tp.basecode.bgame.control.GameFactory;
 import es.ucm.fdi.tp.basecode.bgame.control.Player;
 import es.ucm.fdi.tp.basecode.bgame.model.AIAlgorithm;
-import es.ucm.fdi.tp.basecode.bgame.model.GameError;
 import es.ucm.fdi.tp.basecode.bgame.model.GameMove;
 import es.ucm.fdi.tp.basecode.bgame.model.GameObserver;
 import es.ucm.fdi.tp.basecode.bgame.model.GameRules;
@@ -20,21 +19,13 @@ import es.ucm.fdi.tp.basecode.bgame.views.GenericConsoleView;
 
 public class AtaxxFactory implements GameFactory {
 	
-	private int dim;
+	protected int dim;
 	
 	public AtaxxFactory(){
 		this(5);
 	}
 	
-	public AtaxxFactory(int dim){
-		if (dim < 5){
-			throw new GameError("Dimension must be at least 5: " + dim);
-		}
-		
-		if ((dim & 1) == 0){
-			throw new GameError("Dimension must be an odd number: " + dim);
-		}
-		
+	public AtaxxFactory(int dim){		
 		this.dim = dim;
 	}
 
