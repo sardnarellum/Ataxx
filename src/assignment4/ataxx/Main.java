@@ -275,7 +275,8 @@ public class Main {
 																// --multiviews
 		cmdLineOptions.addOption(constructPlayersOption()); // -p or --players
 		cmdLineOptions.addOption(constructDimensionOption()); // -d or --dim
-		cmdLineOptions.addOption(constructObstaclesOption()); // -o or --obstacles
+		cmdLineOptions.addOption(constructObstaclesOption()); // -o or
+																// --obstacles
 
 		// parse the command line as provided in args
 		//
@@ -285,10 +286,10 @@ public class Main {
 			parseHelpOption(line, cmdLineOptions);
 			parseDimOptionn(line);
 			parseGameOption(line);
+			parseObstaclesOptions(line);
 			parseViewOption(line);
 			parseMultiViewOption(line);
 			parsePlayersOptions(line);
-			parseObstaclesOptions(line);
 
 			// if there are some remaining arguments, then something wrong is
 			// provided in the command line!
@@ -307,29 +308,6 @@ public class Main {
 			System.exit(1);
 		}
 
-	}
-
-	/**
-	 * Builds the obstacles (-o or --obstacles) CLI option.
-	 * @return CLI {@link Option} for the multiview option.
-	 */
-	private static Option constructObstaclesOption() {	
-		Option opt = new Option("o", "obstacles", true,
-				"Generate obstacles for each quadrant of the table.");
-		opt.setArgName("qty in a quadrant");
-		return opt;
-	}
-
-	private static void parseObstaclesOptions(CommandLine line) throws ParseException {
-		// TODO Auto-generated method stub
-		String oVal = line.getOptionValue("o");
-		if (null != oVal) {
-			try {
-				qObstacles = Integer.parseInt(oVal);
-			} catch (NumberFormatException e){
-				throw new ParseException("Invalid obstacles parameter: " + oVal);
-			}
-		}
 	}
 
 	/**
@@ -565,13 +543,9 @@ public class Main {
 			break;
 		case ATAXX:
 			if (dimRows != null && dimCols != null && dimRows == dimCols) {
-				gameFactory = qObstacles != null
-						? new AtaxxObstaclesFactory(qObstacles, dimRows)
-						: new AtaxxFactory(dimRows);
+				gameFactory = new AtaxxFactory(dimRows);
 			} else {
-				gameFactory = qObstacles != null
-						? new AtaxxObstaclesFactory(qObstacles)
-						: new AtaxxFactory();
+				gameFactory = new AtaxxFactory();
 			}
 			break;
 		default:
@@ -664,6 +638,29 @@ public class Main {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp(Main.class.getCanonicalName(), cmdLineOptions, true);
 			System.exit(0);
+		}
+	}
+
+	/**
+	 * Builds the obstacles (-o or --obstacles) CLI option.
+	 * @return CLI {@link Option} for the multiview option.
+	 */
+	private static Option constructObstaclesOption() {	
+		Option opt = new Option("o", "obstacles", true,
+				"Generate obstacles for each quadrant of the table.");
+		opt.setArgName("qty in a quadrant");
+		return opt;
+	}
+
+	private static void parseObstaclesOptions(CommandLine line) throws ParseException {
+		// TODO Auto-generated method stub
+		String oVal = line.getOptionValue("o");
+		if (null != oVal) {
+			try {
+				qObstacles = Integer.parseInt(oVal);
+			} catch (NumberFormatException e){
+				throw new ParseException("Invalid obstacles parameter: " + oVal);
+			}
 		}
 	}
 

@@ -115,8 +115,8 @@ public class AtaxxRules implements GameRules {
 		
 		for (int row = 0; row < board.getRows(); ++row){
 			for (int col = 0; col < board.getCols(); ++col){
-				if (inRange(row, col, board, playersPieces)){
-					moves.add(new AtaxxMove(row, col, turn));
+				if (inRange(row, col, board, playersPieces)){// TODO: implement valid movements
+					//moves.add(new AtaxxMove(row, col, turn)); 
 				}
 			}
 		}
@@ -129,13 +129,12 @@ public class AtaxxRules implements GameRules {
 		int m = row < board.getCols() - 2 ? col + 2 : board.getCols() - 1;
 		
 		for (int i = 1 < row ? row - 2 : 0; i <= n; ++i){			
-			for (int j = 1 < col ? col - 2 : 0; i <= m; ++j){
-				if (j < 0){
-					j = 0;
-				}
+			for (int j = 1 < col ? col - 2 : 0; j <= m; ++j){
 				if (i == j){
-					++j;
+					++j; //TODO: finish this method
 				}
+				if (null == board.getPosition(i, j))
+					return true;
 			}
 		}
 		
