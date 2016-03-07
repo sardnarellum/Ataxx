@@ -42,10 +42,10 @@ public class AtaxxMove extends GameMove {
 				}
 				
 				for (int i = 0 < trow ? trow - 1 : 0;
-				         i < (trow < board.getRows() - 1 ? trow + 1 : trow);
+				         i <= (trow < board.getRows() - 1 ? trow + 1 : trow);
 				         ++i){			
 					for (int j = 0 < tcol ? tcol - 1 : 0;
-					         j < (trow < board.getCols() - 1 ? tcol + 1 : tcol);
+					         j <= (tcol < board.getCols() - 1 ? tcol + 1 : tcol);
 							 ++j){
 						Piece p = board.getPosition(i, j); 
 						if (null != p && getPiece() != p){
@@ -55,10 +55,11 @@ public class AtaxxMove extends GameMove {
 				}
 			}
 			else {
-				throw new GameError("invalid origin position (" + frow + "," + fcol + ")!");
+				throw new GameError("Invalid origin position (" + frow + "," + fcol + ")!");
 			}
-		} else {
-			throw new GameError("position (" + trow + "," + tcol + ") is already occupied!");
+		}
+		else {
+			throw new GameError("Position (" + trow + "," + tcol + ") is already occupied!");
 		}
 	}
 	
