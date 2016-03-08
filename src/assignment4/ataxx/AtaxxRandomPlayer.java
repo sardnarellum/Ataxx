@@ -9,8 +9,8 @@ import es.ucm.fdi.tp.basecode.bgame.model.GameError;
 import es.ucm.fdi.tp.basecode.bgame.model.GameMove;
 import es.ucm.fdi.tp.basecode.bgame.model.GameRules;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
-import es.ucm.fdi.tp.basecode.connectN.ConnectNMove;
 
+//TODO: Implement RandomPlayer
 public class AtaxxRandomPlayer extends Player {
 
 	private static final long serialVersionUID = 1L;
@@ -41,7 +41,7 @@ public class AtaxxRandomPlayer extends Player {
 	}
 
 	private GameMove createMove(int currRow, int currCol, Piece p) {
-		return new ConnectNMove(currRow, currCol, p);
+		return new AtaxxMove(currRow, currCol, currRow, currCol, p); // dummy arguments
 	}
 
 }

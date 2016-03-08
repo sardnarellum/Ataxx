@@ -1,6 +1,5 @@
 package assignment4.ataxx;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
@@ -24,6 +23,9 @@ public class AtaxxRules implements GameRules {
 	
 	protected final Pair<State, Piece> gameInPlayResult =
 			new Pair<State, Piece>(State.InPlay, null);
+	
+	protected final Pair<State, Piece> gameDrawResult =
+			new Pair<State, Piece>(State.Draw, null);
 	
 	private int dim;
 	
@@ -94,7 +96,83 @@ public class AtaxxRules implements GameRules {
 	@Override
 	public Pair<State, Piece> updateState(Board board, List<Piece> pieces, Piece turn) {
 		// TODO implement state updating
+		boolean canContinue = false;
+		
+		if (!board.isFull()){
+			for (Piece e : pieces){
+				canContinue = canMove(board, e);
+			}
+		}
+		
+		if (!canContinue){
+			Piece winner = pieces.get(0);
+			int highScore = pieceOnBoardCount(board, winner);
+			boolean draw = false;
+			
+			for (int i = 1; i < pieces.size(); ++i){
+				Piece currP = pieces.get(i);
+				int currS =	pieceOnBoardCount(board, currP);
+				
+				if (highScore < currS){
+					winner = currP;
+					highScore = currS;
+					draw = false;				
+				} else if (highScore == currS){
+					draw = true;
+				}
+			}
+			
+			if (draw){
+				return gameDrawResult;
+			} else {
+				return new Pair<State, Piece>(State.Won, winner);
+			}
+		}
+		
 		return gameInPlayResult;
+	}
+	
+	private boolean canMove(Board board, Piece piece){
+		boolean l = false;
+		
+		for (int i = 0; i < board.getRows(); ++i){
+			for (int j = 0; j < board.getCols(); ++j){
+				if (board.getPosition(i, j) == piece){
+					l = emptyInRange(board, i, j);
+				}
+			}
+		}
+		
+		return l;
+	}
+	
+	private boolean emptyInRange(Board board, int row, int col) {		
+		for (int i = 1 < row ? row - 2 : 0;
+		        i <= (row < board.getRows() - 2 ? row + 2 : row);
+		        ++i){			
+			for (int j = 1 < col ? col - 2 : 0;
+			         j <= (col < board.getCols() - 2 ? col + 2 : col);
+					 ++j){
+				if (null == board.getPosition(i, j)){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private int pieceOnBoardCount(Board board, Piece piece){
+		int c = 0;
+		
+		for (int i = 0; i < board.getRows(); ++i){
+			for (int j = 0; j < board.getCols(); ++j){
+				if (board.getPosition(i, j) == piece){
+					++c;
+				}
+			}
+		}
+		
+		return c;
 	}
 
 	@Override
@@ -111,34 +189,8 @@ public class AtaxxRules implements GameRules {
 
 	@Override
 	public List<GameMove> validMoves(Board board, List<Piece> playersPieces, Piece turn) {
-		List <GameMove> moves = new ArrayList<GameMove>();		
-		
-		for (int row = 0; row < board.getRows(); ++row){
-			for (int col = 0; col < board.getCols(); ++col){
-				if (inRange(row, col, board, playersPieces)){// TODO: implement valid movements
-					//moves.add(new AtaxxMove(row, col, turn)); 
-				}
-			}
-		}
-		
-		return moves;
-	}
-	
-	private boolean inRange(int row, int col, Board board, List<Piece> playersPieces){
-		int n = row < board.getRows() - 2 ? row + 2 : board.getRows() - 1;
-		int m = row < board.getCols() - 2 ? col + 2 : board.getCols() - 1;
-		
-		for (int i = 1 < row ? row - 2 : 0; i <= n; ++i){			
-			for (int j = 1 < col ? col - 2 : 0; j <= m; ++j){
-				if (i == j){
-					++j; //TODO: finish this method
-				}
-				if (null == board.getPosition(i, j))
-					return true;
-			}
-		}
-		
-		return false;
+			
+		return null; //TODO: validMoves
 	}
 
 }
