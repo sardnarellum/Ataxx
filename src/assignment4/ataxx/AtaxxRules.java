@@ -146,18 +146,15 @@ public class AtaxxRules implements GameRules {
 		return l;
 	}
 	
-	private boolean emptyInRange(Board board, int row, int col) {		
-		for (int i = 1 < row ? row - 2 : 0;
-		        i <= (row < board.getRows() - 2 ? row + 2 : row);
-		        ++i){			
-			for (int j = 1 < col ? col - 2 : 0;
-			         j <= (col < board.getCols() - 2 ? col + 2 : col);
-					 ++j){
-				if (null == board.getPosition(i, j)){
-					return true;
-				}
+	private boolean emptyInRange(Board board, int row, int col) {
+		BoardRangeIterator it = new BoardRangeIterator(row, col, 2, board);
+		
+		while (it.hasNext()){
+			if (null == it.next()){
+				return true;
 			}
 		}
+		
 		return false;
 	}
 

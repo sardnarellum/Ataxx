@@ -26,6 +26,7 @@ public class AtaxxMove extends GameMove {
 	public AtaxxMove() {
 	}
 
+	//TODO: Needs reorganize ifs
 	@Override
 	public void execute(Board board, List<Piece> pieces) {		
 		if (board.getPosition(trow, tcol) == null) {
@@ -41,16 +42,12 @@ public class AtaxxMove extends GameMove {
 					throw new GameError("The distance cannot be more than 2 between the origin and the destination!");
 				}
 				
-				for (int i = 0 < trow ? trow - 1 : 0;
-				         i <= (trow < board.getRows() - 1 ? trow + 1 : trow);
-				         ++i){			
-					for (int j = 0 < tcol ? tcol - 1 : 0;
-					         j <= (tcol < board.getCols() - 1 ? tcol + 1 : tcol);
-							 ++j){
-						Piece p = board.getPosition(i, j); 
-						if (null != p && getPiece() != p){
-							board.setPosition(i, j, getPiece());
-						}
+				BoardRangeIterator it = new BoardRangeIterator(trow, tcol, 1, board);
+				
+				while (it.hasNext()){
+					Piece p = it.next(); 
+					if (null != p && getPiece() != p){
+						it.setPosition(getPiece());
 					}
 				}
 			}
