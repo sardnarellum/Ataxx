@@ -2,6 +2,7 @@ package assignment4.ataxx;
 
 import java.util.List;
 
+
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
 import es.ucm.fdi.tp.basecode.bgame.model.FiniteRectBoard;
 import es.ucm.fdi.tp.basecode.bgame.model.Game.State;
@@ -99,9 +100,7 @@ public class AtaxxRules implements GameRules {
 		boolean canContinue = false;
 		
 		if (!board.isFull()){
-			for (Piece e : pieces){
-				canContinue = canMove(board, e);
-			}
+			canContinue = canContinue(board, pieces);
 		}
 		
 		if (!canContinue){
@@ -132,18 +131,27 @@ public class AtaxxRules implements GameRules {
 		return gameInPlayResult;
 	}
 	
-	private boolean canMove(Board board, Piece piece){
-		boolean l = false;
-		
+	private boolean canMove(Board board, Piece piece){		
 		for (int i = 0; i < board.getRows(); ++i){
 			for (int j = 0; j < board.getCols(); ++j){
-				if (board.getPosition(i, j) == piece){
-					l = emptyInRange(board, i, j);
+				if (board.getPosition(i, j) == piece
+						&& emptyInRange(board, i, j)){
+					return true;
 				}
 			}
 		}
 		
-		return l;
+		return false;
+	}
+	
+	private boolean canContinue(Board board, List<Piece> pieces){
+		for (Piece e : pieces){
+			if (canMove(board, e)){
+				return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	private boolean emptyInRange(Board board, int row, int col) {
@@ -176,7 +184,13 @@ public class AtaxxRules implements GameRules {
 	public Piece nextPlayer(Board board, List<Piece> playersPieces, Piece turn) {
 		List<Piece> pieces = playersPieces;
 		int i = pieces.indexOf(turn);
-		return pieces.get((i + 1) % pieces.size());
+		Piece p = pieces.get((i + 1) % pieces.size());
+		
+		while (!canMove(board, p)){
+			p = pieces.get((++i + 1) % pieces.size());				
+		}
+		
+		return p;
 	}
 
 	@Override

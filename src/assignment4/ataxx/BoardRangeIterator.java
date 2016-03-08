@@ -5,7 +5,6 @@ import java.util.Iterator;
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
-// TODO: Az utolsó elem kimarad.
 public class BoardRangeIterator implements Iterator<Piece> {
 	private int nextRow;
 	private final int upperBoundRow;
