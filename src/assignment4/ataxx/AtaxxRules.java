@@ -34,8 +34,9 @@ public class AtaxxRules implements GameRules {
 	
 	/**
 	 * Initializes AtaxxRuless class with the dimension of the row and columns of Ataxx table.
+	 * @param qObstacles must be at least 0 and not more than the square
+	 * 		  of the half of {@code dim}.
 	 * @param dim must be at least 5 and an odd number
-	 * @param dim 
 	 */
 	public AtaxxRules(int qObstacles, int dim){
 		

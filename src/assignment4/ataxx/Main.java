@@ -642,7 +642,7 @@ public class Main {
 
 	/**
 	 * Builds the obstacles (-o or --obstacles) CLI option.
-	 * @return CLI {@link Option} for the multiview option.
+	 * @return CLI {@link Option} for the obstacles option.
 	 */
 	private static Option constructObstaclesOption() {	
 		Option opt = new Option("o", "obstacles", true,
@@ -651,6 +651,12 @@ public class Main {
 		return opt;
 	}
 
+	/**
+	 * Parses the obstacles option (-o or --obstacles). It sets the value of
+	 * {@link qObstacles}.
+	 * @param line
+	 * @throws ParseException
+	 */
 	private static void parseObstaclesOptions(CommandLine line) throws ParseException {
 		String oVal = line.getOptionValue("o");
 		if (null != oVal) {

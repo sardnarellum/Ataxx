@@ -7,14 +7,49 @@ import es.ucm.fdi.tp.basecode.bgame.model.GameError;
 import es.ucm.fdi.tp.basecode.bgame.model.GameMove;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
+/**
+ * A Class representing a move for Ataxx.
+ * @author Müller András
+ *
+ */
 public class AtaxxMove extends GameMove {
 	
 	private static final long serialVersionUID = 1L;	
-	protected int frow;
-	protected int fcol;
-	protected int trow;
+	
+	/**
+	 * The row where from pick the piece returm by {@link GameMove#getPiece()}.
+	 * If the distance between origin and destination fields is one, the field
+	 * is left occupied by {@link GameMove#getPiece()}.
+	 */
+	protected int frow;	
+
+	/**
+	 * The column where from pick the piece returm by {@link GameMove#getPiece()}.
+	 * If the distance between origin and destination fields is one, the field
+	 * is left occupied by {@link GameMove#getPiece()}.
+	 */
+	protected int fcol;	
+
+	/**
+	 * The row where to place the piece returm by {@link GameMove#getPiece()}.
+	 */
+	protected int trow;	
+
+	/**
+	 * The row where to place the piece returm by {@link GameMove#getPiece()}.
+	 */
 	protected int tcol;
 
+	/**
+	 * Constructs a movement for moving a piece of the type referenced by {@code p}
+	 * from position ({@code i},{@code j}) to position ({@code k},{@code l}).
+	 * If the distance is only one, it places a piece of the same to the origin field.
+	 * @param i Number of origin row.
+	 * @param j Number of origin column.
+	 * @param k Number of destination row.
+	 * @param l Number of destination column.
+	 * @param p A piece to bo moved or copied from ({@code i},{@code j}) to ({@code k},{@code l}).
+	 */
 	public AtaxxMove(int i, int j, int k, int l, Piece p) {
 		super(p);
 		this.frow = i;
@@ -26,7 +61,6 @@ public class AtaxxMove extends GameMove {
 	public AtaxxMove() {
 	}
 
-	//TODO: Needs reorganize ifs
 	@Override
 	public void execute(Board board, List<Piece> pieces) {		
 		if (board.getPosition(trow, tcol) == null) {
@@ -82,6 +116,17 @@ public class AtaxxMove extends GameMove {
 		}
 	}
 
+	/**
+	 * Creates a move that is called from {@link #fromString(Piece, String)}.
+	 * Separating it from that method allows us to use this class for other
+	 * similar games by overriding this method.
+	 * @param frow Origin row of the move being created.
+	 * @param fcol Origin column of the move being created.
+	 * @param trow Destination row of the move being created.
+	 * @param tcol Destination column of the move being created.
+	 * @param p
+	 * @return
+	 */
 	private GameMove createMove(int frow, int fcol, int trow, int tcol, Piece p) {
 		return new AtaxxMove(frow, fcol, trow, tcol, p);
 	}
