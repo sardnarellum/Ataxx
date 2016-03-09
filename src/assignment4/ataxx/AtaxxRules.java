@@ -96,21 +96,17 @@ public class AtaxxRules implements GameRules {
 
 	@Override
 	public Pair<State, Piece> updateState(Board board, List<Piece> pieces, Piece turn) {
-		// TODO implement state updating
 		boolean canContinue = false;
-		
-		if (!board.isFull()){
-			canContinue = canContinue(board, pieces);
-		}
+		canContinue = AtaxxCommon.gameCanContinue(board, pieces);
 		
 		if (!canContinue){
 			Piece winner = pieces.get(0);
-			int highScore = pieceOnBoardCount(board, winner);
+			int highScore = AtaxxCommon.pieceOnBoardCount(board, winner);
 			boolean draw = false;
 			
 			for (int i = 1; i < pieces.size(); ++i){
 				Piece currP = pieces.get(i);
-				int currS =	pieceOnBoardCount(board, currP);
+				int currS =	AtaxxCommon.pieceOnBoardCount(board, currP);
 				
 				if (highScore < currS){
 					winner = currP;
@@ -130,55 +126,6 @@ public class AtaxxRules implements GameRules {
 		
 		return gameInPlayResult;
 	}
-	
-	private boolean canMove(Board board, Piece piece){		
-		for (int i = 0; i < board.getRows(); ++i){
-			for (int j = 0; j < board.getCols(); ++j){
-				if (board.getPosition(i, j) == piece
-						&& emptyInRange(board, i, j)){
-					return true;
-				}
-			}
-		}
-		
-		return false;
-	}
-	
-	private boolean canContinue(Board board, List<Piece> pieces){
-		for (Piece e : pieces){
-			if (canMove(board, e)){
-				return true;
-			}
-		}
-		
-		return false;
-	}
-	
-	private boolean emptyInRange(Board board, int row, int col) {
-		BoardRangeIterator it = new BoardRangeIterator(row, col, 2, board);
-		
-		while (it.hasNext()){
-			if (null == it.next()){
-				return true;
-			}
-		}
-		
-		return false;
-	}
-
-	private int pieceOnBoardCount(Board board, Piece piece){
-		int c = 0;
-		
-		for (int i = 0; i < board.getRows(); ++i){
-			for (int j = 0; j < board.getCols(); ++j){
-				if (board.getPosition(i, j) == piece){
-					++c;
-				}
-			}
-		}
-		
-		return c;
-	}
 
 	@Override
 	public Piece nextPlayer(Board board, List<Piece> playersPieces, Piece turn) {
@@ -186,7 +133,7 @@ public class AtaxxRules implements GameRules {
 		int i = pieces.indexOf(turn);
 		Piece p = pieces.get((i + 1) % pieces.size());
 		
-		while (!canMove(board, p)){
+		while (!AtaxxCommon.playerCanMove(board, p)){
 			p = pieces.get((++i + 1) % pieces.size());				
 		}
 		

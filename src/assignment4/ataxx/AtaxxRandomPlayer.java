@@ -10,7 +10,6 @@ import es.ucm.fdi.tp.basecode.bgame.model.GameMove;
 import es.ucm.fdi.tp.basecode.bgame.model.GameRules;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
-//TODO: Implement RandomPlayer
 public class AtaxxRandomPlayer extends Player {
 
 	private static final long serialVersionUID = 1L;
@@ -28,10 +27,31 @@ public class AtaxxRandomPlayer extends Player {
 		int currRow = Utils.randomInt(rows);
 		int currCol = Utils.randomInt(cols);
 
-		// start at (currRow,currColl) and look for the first empty position.
+		// start at (currRow,currColl) and look for the first position matching with the piece for origin.
 		while (true) {
-			if (board.getPosition(currRow, currCol) == null) {
-				return createMove(currRow, currCol, p);
+			if (board.getPosition(currRow, currCol) == p &&
+				AtaxxCommon.boardEmptyInRange(board, currRow, currCol)) {
+				
+				// pick an inital random position for the destiniation 
+				int shiftR = Utils.randomInt(4) - 2;
+				int shiftC = Utils.randomInt(4) - 2;
+				while (true) {					
+					if (currRow + shiftR >= rows || currRow + shiftR < 0){
+						shiftR *= -1;
+					}
+					
+					if (currCol + shiftC >= cols || currCol + shiftC < 0){
+						shiftC *= -1;
+					}
+					
+					if (board.getPosition(currRow + shiftR, currCol + shiftC) == null){
+						return createMove(currRow, currCol,
+								currRow + shiftR, currCol + shiftC, p);
+					}
+					
+					shiftR = Utils.randomInt(4) - 2;
+					shiftC = Utils.randomInt(4) - 2;
+				}
 			}
 			currCol = (currCol + 1) % cols;
 			if (currCol == 0) {
@@ -40,8 +60,9 @@ public class AtaxxRandomPlayer extends Player {
 		}
 	}
 
-	private GameMove createMove(int currRow, int currCol, Piece p) {
-		return new AtaxxMove(currRow, currCol, currRow, currCol, p); // dummy arguments
+	private GameMove createMove(int currRowF, int currColF,
+			int currRowT, int currColT, Piece p) {
+		return new AtaxxMove(currRowF, currColF, currRowT, currColT, p); // dummy arguments
 	}
 
 }

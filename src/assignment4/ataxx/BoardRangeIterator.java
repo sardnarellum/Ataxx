@@ -3,6 +3,7 @@ package assignment4.ataxx;
 import java.util.Iterator;
 
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
+import es.ucm.fdi.tp.basecode.bgame.model.Pair;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
 public class BoardRangeIterator implements Iterator<Piece> {
@@ -15,11 +16,11 @@ public class BoardRangeIterator implements Iterator<Piece> {
 	private int currRow;
 	private int currCol;
 	
-	public BoardRangeIterator(int row, int col, int dist, Board board){
-		currRow = nextRow = (0 + dist <= row ? row - dist : 0);
-		upperBoundRow = (row < board.getRows() - dist ? row + dist : row);
-		startCol = currCol = nextCol = (0 + dist < col ? col - dist : 0);
-		upperBoundCol = (col < board.getCols() - dist ? col + dist : col);
+	public BoardRangeIterator(int row, int col, int range, Board board){
+		currRow = nextRow = (0 + range <= row ? row - range : 0);
+		upperBoundRow = (row < board.getRows() - range ? row + range : row);
+		startCol = currCol = nextCol = (0 + range < col ? col - range : 0);
+		upperBoundCol = (col < board.getCols() - range ? col + range : col);
 		b = board;
 	}
 
@@ -37,15 +38,19 @@ public class BoardRangeIterator implements Iterator<Piece> {
 				: nextRow,
 				currCol =
 				nextCol == upperBoundCol
-				? currZero()
+				? nextColZero()
 				: nextCol++);
+	}
+	
+	public Pair<Integer, Integer> getCoordinates(){
+		return new Pair<Integer, Integer>(currRow, currCol);
 	}
 	
 	public void setPosition(Piece piece){
 		b.setPosition(currRow, currCol, piece);
 	}
 	
-	private int currZero(){
+	private int nextColZero(){ // lambda function bug in eclipse
 		int temp = nextCol;
 		nextCol = startCol;
 		return temp;
