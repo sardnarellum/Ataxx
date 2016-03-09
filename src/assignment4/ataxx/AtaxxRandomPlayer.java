@@ -8,6 +8,7 @@ import es.ucm.fdi.tp.basecode.bgame.model.Board;
 import es.ucm.fdi.tp.basecode.bgame.model.GameError;
 import es.ucm.fdi.tp.basecode.bgame.model.GameMove;
 import es.ucm.fdi.tp.basecode.bgame.model.GameRules;
+import es.ucm.fdi.tp.basecode.bgame.model.Pair;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
 public class AtaxxRandomPlayer extends Player {
@@ -16,8 +17,8 @@ public class AtaxxRandomPlayer extends Player {
 	
 	@Override
 	public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {
-		if (board.isFull()) {
-			throw new GameError("The board is full, cannot make a random move!!");
+		if (!AtaxxCommon.playerCanMove(board, p)) {
+			throw new GameError(p.getId() + "cannot make a random move!!");
 		}
 
 		int rows = board.getRows();
@@ -29,28 +30,17 @@ public class AtaxxRandomPlayer extends Player {
 
 		// start at (currRow,currColl) and look for the first position matching with the piece for origin.
 		while (true) {
-			if (board.getPosition(currRow, currCol) == p &&
-				AtaxxCommon.boardEmptyInRange(board, currRow, currCol)) {
+			if (board.getPosition(currRow, currCol) == p) {
+				List<Pair<Integer, Integer>> l = AtaxxCommon
+						.emptyPlacesInRange(board, currRow, currCol);
 				
-				// pick an inital random position for the destiniation 
-				int shiftR = Utils.randomInt(4) - 2;
-				int shiftC = Utils.randomInt(4) - 2;
-				while (true) {					
-					if (currRow + shiftR >= rows || currRow + shiftR < 0){
-						shiftR *= -1;
-					}
-					
-					if (currCol + shiftC >= cols || currCol + shiftC < 0){
-						shiftC *= -1;
-					}
-					
-					if (board.getPosition(currRow + shiftR, currCol + shiftC) == null){
-						return createMove(currRow, currCol,
-								currRow + shiftR, currCol + shiftC, p);
-					}
-					
-					shiftR = Utils.randomInt(4) - 2;
-					shiftC = Utils.randomInt(4) - 2;
+				int emptyPlaces = l.size(); 
+				
+				if (emptyPlaces > 0){					
+					int index = emptyPlaces > 1 ? Utils.randomInt(emptyPlaces - 1) : 0;
+					Pair<Integer, Integer> coords = l.get(index);
+					return createMove(currRow, currCol,	coords.getFirst(),
+							coords.getSecond(), p);
 				}
 			}
 			currCol = (currCol + 1) % cols;

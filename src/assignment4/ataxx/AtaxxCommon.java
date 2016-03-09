@@ -9,7 +9,7 @@ import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
 public final class AtaxxCommon {
 
-	public static boolean boardEmptyInRange(Board board, int row, int col) {
+	public static boolean emptyPlaceInRange(Board board, int row, int col) {
 		BoardRangeIterator it = new BoardRangeIterator(row, col, 2, board);
 		
 		while (it.hasNext()){
@@ -25,7 +25,7 @@ public final class AtaxxCommon {
 		for (int i = 0; i < board.getRows(); ++i){
 			for (int j = 0; j < board.getCols(); ++j){
 				if (board.getPosition(i, j) == piece
-						&& boardEmptyInRange(board, i, j)){
+						&& emptyPlaceInRange(board, i, j)){
 					return true;
 				}
 			}
