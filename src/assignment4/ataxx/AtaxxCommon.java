@@ -73,4 +73,24 @@ public final class AtaxxCommon {
 		
 		return places;
 	}
+	
+	public static ArrayList<Pair<Integer, Integer>> emptyPlacesQuadrant(Board board){
+		ArrayList<Pair<Integer, Integer>> places = new ArrayList<Pair<Integer, Integer>>(); // Why typedef doesn't exist in java?????!!
+		
+		for (int i = 0; i < board.getRows() / 2; ++i){
+			for (int j = 0; j < board.getCols() / 2; ++j){
+				if (board.getPosition(i, j) == null)
+					places.add(new Pair<Integer, Integer>(i, j)); 
+			}
+		}
+		
+		return places;
+	}
+	
+	public static void setInAllQuadrants(int row, int col, Board b, Piece p){
+		b.setPosition(row, col, p);
+		b.setPosition(b.getRows() - row - 1, col, p);
+		b.setPosition(row, b.getCols() - col - 1, p);
+		b.setPosition(b.getRows() - row - 1, b.getCols() - col - 1, p);
+	}
 }

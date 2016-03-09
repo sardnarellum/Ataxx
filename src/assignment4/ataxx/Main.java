@@ -242,7 +242,7 @@ public class Main {
 	/**
 	 * Number of quadrant of obstacles to be generated.
 	 */
-	private static Integer qObstacles;
+	private static int qObstacles = 0;
 
 	/**
 	 * Processes the command-line arguments and modify the fields of this
@@ -268,13 +268,13 @@ public class Main {
 		//
 		Options cmdLineOptions = new Options();
 		cmdLineOptions.addOption(constructHelpOption()); // -h or --help
+		cmdLineOptions.addOption(constructObstaclesOption()); // -o or
 		cmdLineOptions.addOption(constructGameOption()); // -g or --game
 		cmdLineOptions.addOption(constructViewOption()); // -v or --view
 		cmdLineOptions.addOption(constructMlutiViewOption()); // -m or
 																// --multiviews
 		cmdLineOptions.addOption(constructPlayersOption()); // -p or --players
 		cmdLineOptions.addOption(constructDimensionOption()); // -d or --dim
-		cmdLineOptions.addOption(constructObstaclesOption()); // -o or
 																// --obstacles
 
 		// parse the command line as provided in args
@@ -284,8 +284,8 @@ public class Main {
 			CommandLine line = parser.parse(cmdLineOptions, args);
 			parseHelpOption(line, cmdLineOptions);
 			parseDimOptionn(line);
-			parseGameOption(line);
 			parseObstaclesOptions(line);
+			parseGameOption(line);
 			parseViewOption(line);
 			parseMultiViewOption(line);
 			parsePlayersOptions(line);
@@ -542,9 +542,9 @@ public class Main {
 			break;
 		case ATAXX:
 			if (dimRows != null && dimCols != null && dimRows == dimCols) {
-				gameFactory = new AtaxxFactory(dimRows);
+				gameFactory = new AtaxxFactory(qObstacles, dimRows);
 			} else {
-				gameFactory = new AtaxxFactory();
+				gameFactory = new AtaxxFactory(qObstacles);
 			}
 			break;
 		default:
@@ -652,7 +652,6 @@ public class Main {
 	}
 
 	private static void parseObstaclesOptions(CommandLine line) throws ParseException {
-		// TODO Auto-generated method stub
 		String oVal = line.getOptionValue("o");
 		if (null != oVal) {
 			try {

@@ -19,19 +19,25 @@ import es.ucm.fdi.tp.basecode.bgame.views.GenericConsoleView;
 
 public class AtaxxFactory implements GameFactory {
 	
-	protected int dim;
+	protected final int dim;
+	protected final int qObs;
 	
 	public AtaxxFactory(){
-		this(5);
+		this(0);
 	}
 	
-	public AtaxxFactory(int dim){		
-		this.dim = dim;
+	public AtaxxFactory(int qObstacles){
+		this(qObstacles, 5);
+	}
+
+	public AtaxxFactory(Integer qObstacles, Integer dim) {
+		this.qObs = qObstacles;	
+		this.dim = dim;		
 	}
 
 	@Override
 	public GameRules gameRules() {
-		return new AtaxxRules(dim);
+		return new AtaxxRules(qObs, dim);
 	}
 
 	@Override

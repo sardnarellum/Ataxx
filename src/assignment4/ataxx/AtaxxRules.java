@@ -1,8 +1,9 @@
 package assignment4.ataxx;
 
+import java.util.ArrayList;
 import java.util.List;
 
-
+import es.ucm.fdi.tp.basecode.bgame.Utils;
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
 import es.ucm.fdi.tp.basecode.bgame.model.FiniteRectBoard;
 import es.ucm.fdi.tp.basecode.bgame.model.Game.State;
@@ -28,13 +29,16 @@ public class AtaxxRules implements GameRules {
 	protected final Pair<State, Piece> gameDrawResult =
 			new Pair<State, Piece>(State.Draw, null);
 	
-	private int dim;
+	private final int dim;
+	private int qObs;
 	
 	/**
 	 * Initializes AtaxxRuless class with the dimension of the row and columns of Ataxx table.
 	 * @param dim must be at least 5 and an odd number
+	 * @param dim 
 	 */
-	public AtaxxRules(int dim){
+	public AtaxxRules(int qObstacles, int dim){
+		
 		if (dim < 5){
 			throw new GameError("Dimension must be at least 5: " + dim);
 		}
@@ -43,7 +47,18 @@ public class AtaxxRules implements GameRules {
 			throw new GameError("Dimension must be an odd number: " + dim);
 		}
 		
+		if (qObstacles < 0){
+			throw new GameError("The number of obstacles cannot be negative: " + qObstacles);
+		}
+		
+		if (qObstacles >= Math.pow(dim / 2, 2)){
+			throw new GameError("The number of obstacles ("
+					+ qObstacles + ") must less than "
+					+ (int)Math.pow(dim / 2, 2) + ".");
+		}
+		
 		this.dim = dim;
+		this.qObs = qObstacles;
 	}
 
 	@Override
@@ -68,6 +83,19 @@ public class AtaxxRules implements GameRules {
 		if (pieces.size() == 4){
 			board.setPosition(0, dim / 2, pieces.get(3));
 			board.setPosition(dim - 1, dim / 2, pieces.get(3));			
+		}
+		
+		while (qObs > 0){
+			ArrayList<Pair<Integer, Integer>> l = 
+					AtaxxCommon.emptyPlacesQuadrant(board);
+			if (l.size() == 0){
+				qObs = 0;
+			} else {
+				Pair<Integer, Integer> p = l.get(Utils.randomInt(l.size()));
+				AtaxxCommon.setInAllQuadrants(p.getFirst(), p.getSecond(),
+						board, new Piece("*"));
+				--qObs;
+			}
 		}
 		
 		return board;
@@ -146,9 +174,8 @@ public class AtaxxRules implements GameRules {
 	}
 
 	@Override
-	public List<GameMove> validMoves(Board board, List<Piece> playersPieces, Piece turn) {
-			
-		return null; //TODO: validMoves
+	public List<GameMove> validMoves(Board board, List<Piece> playersPieces, Piece turn) {			
+		return null;
 	}
 
 }
