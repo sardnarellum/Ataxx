@@ -80,7 +80,7 @@ public class AtaxxMove extends GameMove {
 				
 				while (it.hasNext()){
 					Piece p = it.next(); 
-					if (null != p && p.getId() != "*" && getPiece() != p){
+					if (null != p && pieces.contains(p) && !getPiece().equals(p)){
 						it.setPosition(getPiece());
 					}
 				}

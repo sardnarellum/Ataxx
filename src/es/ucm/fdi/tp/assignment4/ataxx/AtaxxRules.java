@@ -31,6 +31,8 @@ public class AtaxxRules implements GameRules {
 	
 	private final int dim;
 	private int qObs;
+
+	private Piece obstPiece;
 	
 	/**
 	 * Initializes AtaxxRuless class with the dimension of the row and columns of Ataxx table.
@@ -86,6 +88,10 @@ public class AtaxxRules implements GameRules {
 			board.setPosition(dim - 1, dim / 2, pieces.get(3));			
 		}
 		
+		if (qObs > 0){
+			obstPiece = getUniquePiece(pieces);
+		}
+		
 		while (qObs > 0){
 			ArrayList<Pair<Integer, Integer>> l = 
 					AtaxxCommon.emptyPlacesQuadrant(board);
@@ -94,7 +100,7 @@ public class AtaxxRules implements GameRules {
 			} else {
 				Pair<Integer, Integer> p = l.get(Utils.randomInt(l.size()));
 				AtaxxCommon.setInAllQuadrants(p.getFirst(), p.getSecond(),
-						board, new Piece("*"));
+						board, obstPiece);
 				--qObs;
 			}
 		}
@@ -104,7 +110,7 @@ public class AtaxxRules implements GameRules {
 
 	@Override
 	public Piece initialPlayer(Board board, List<Piece> pieces) {
-		return pieces.get(0);
+		return nextPlayer(board, pieces, pieces.get(pieces.size()-1));
 	}
 
 	/**
@@ -160,10 +166,15 @@ public class AtaxxRules implements GameRules {
 	public Piece nextPlayer(Board board, List<Piece> playersPieces, Piece turn) {
 		List<Piece> pieces = playersPieces;
 		int i = pieces.indexOf(turn);
+		int c =	pieces.size();
 		Piece p = pieces.get((i + 1) % pieces.size());
 		
 		while (!AtaxxCommon.playerCanMove(board, p)){
-			p = pieces.get((++i + 1) % pieces.size());				
+			p = pieces.get((++i + 1) % pieces.size());
+			
+			if (--c <= 0){
+				return null;
+			}
 		}
 		
 		return p;
@@ -180,4 +191,16 @@ public class AtaxxRules implements GameRules {
 		return 0;
 	}
 
+
+	private Piece getUniquePiece(List<Piece> pl) {
+		int i = 0;
+		
+		while (true){
+			Piece p = new Piece("*#" + i++);
+			
+			if (!pl.contains(p)){
+				return p;
+			}
+		}
+	}
 }

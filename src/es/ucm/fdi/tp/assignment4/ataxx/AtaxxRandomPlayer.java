@@ -30,7 +30,7 @@ public class AtaxxRandomPlayer extends Player {
 
 		// start at (currRow,currColl) and look for the first position matching with the piece for origin.
 		while (true) {
-			if (board.getPosition(currRow, currCol) == p) {
+			if (board.getPosition(currRow, currCol).equals(p)) {
 				List<Pair<Integer, Integer>> l = AtaxxCommon
 						.emptyPlacesInRange(board, currRow, currCol);
 				
