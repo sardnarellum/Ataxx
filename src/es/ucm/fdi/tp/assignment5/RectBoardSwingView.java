@@ -20,7 +20,7 @@ public class RectBoardSwingView extends SwingView {
 
 	@Override
 	protected void initBoardGUI() {
-		boardComp = new BoardComponent(dim, dim);
+		boardComp = new BoardComponent(5, 5);
 		setBoardArea(boardComp);
 	}
 

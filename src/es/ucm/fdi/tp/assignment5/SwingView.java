@@ -9,11 +9,13 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -62,8 +64,44 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		
 		Border b = BorderFactory.createLineBorder(Color.BLACK);
 		
+		JTable playerInfoTable = new JTable();
+		
 		JPanel playerInfo = new JPanel();
-		playerInfo.setBorder(BorderFactory.createTitledBorder(b, "Players"));
+		playerInfo.setBorder(BorderFactory.createTitledBorder(b, "Player Information"));
+		playerInfo.add(new JScrollPane(playerInfoTable));
+		playerInfoTable.setFillsViewportHeight(true);
+		
+		JPanel colors = new JPanel();
+		colors.setLayout(new BoxLayout(colors, BoxLayout.X_AXIS));
+		colors.setBorder(BorderFactory.createTitledBorder(b, "Piece Colors"));
+		
+		JComboBox<String> colorPlayers = new JComboBox<String>();
+		
+		JButton chooseColorBtn = new JButton("Choose Color");
+		colors.add(colorPlayers);
+		colors.add(chooseColorBtn);
+		
+		JPanel modes = new JPanel();
+		modes.setLayout(new BoxLayout(modes, BoxLayout.X_AXIS));
+		modes.setBorder(BorderFactory.createTitledBorder(b, "Player Modes"));
+
+		JComboBox<String> modePlayers = new JComboBox<String>();
+		JComboBox<String> modesCBox = new JComboBox<String>();
+		JButton setModeBtn = new JButton("Set");
+		
+		modes.add(modePlayers);
+		modes.add(modesCBox);
+		modes.add(setModeBtn);
+		
+		JPanel autoOptions = new JPanel();
+		//autoOptions.setLayout(new BoxLayout(autoOptions, BoxLayout.X_AXIS));
+		autoOptions.setBorder(BorderFactory.createTitledBorder(b, "Automatic Moves"));
+		
+		JButton randomBtn = new JButton("Random");
+		JButton automaticBtn = new JButton("Automatic");
+		
+		autoOptions.add(randomBtn);
+		autoOptions.add(automaticBtn);
 		
 		JPanel quitRestartPanel = new JPanel();
 		quitRestartPanel.setLayout(new BoxLayout(quitRestartPanel, BoxLayout.X_AXIS));
@@ -81,6 +119,9 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		dashboardPanel.setLayout(new BoxLayout(dashboardPanel, BoxLayout.Y_AXIS));
 		dashboardPanel.add(messagePane);
 		dashboardPanel.add(playerInfo);
+		dashboardPanel.add(colors);
+		dashboardPanel.add(modes);
+		dashboardPanel.add(autoOptions);
 		//dashboardPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
 		dashboardPanel.add(quitRestartPanel);
 
