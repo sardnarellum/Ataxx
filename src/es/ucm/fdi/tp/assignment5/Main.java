@@ -145,7 +145,7 @@ public class Main {
 	 * <p>
 	 * Vista por defecto.
 	 */
-	final private static ViewInfo DEFAULT_VIEW = ViewInfo.CONSOLE;
+	final private static ViewInfo DEFAULT_VIEW = ViewInfo.WINDOW;
 
 	/**
 	 * Default player mode to use.
@@ -749,9 +749,22 @@ public class Main {
 			c = new ConsoleCtrlMVC(g, pieces, players, new Scanner(System.in));
 			gameFactory.createConsoleView(g, c);
 			break;
-		case WINDOW:
-			throw new UnsupportedOperationException(
-					"Swing " + (multiviews ? "Multiviews" : "Views") + " are not supported yet! ");
+		case WINDOW:		
+			c = new Controller(g, pieces);
+			if (multiviews){
+				for (Piece p : pieces) { // multi-window
+					gameFactory.createSwingView(g, c, p,
+							gameFactory.createRandomPlayer(),
+							gameFactory.createAIPlayer(aiPlayerAlg));
+				}	
+			}
+			else {
+				gameFactory.createSwingView(g, c, null,
+						gameFactory.createRandomPlayer(),
+						gameFactory.createAIPlayer(aiPlayerAlg));
+			}
+			
+			break;
 		default:
 			throw new UnsupportedOperationException("Something went wrong! This program point should be unreachable!");
 		}
