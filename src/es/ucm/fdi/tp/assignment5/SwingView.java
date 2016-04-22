@@ -3,8 +3,10 @@ package es.ucm.fdi.tp.assignment5;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -14,14 +16,13 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 
 import es.ucm.fdi.tp.assignment5.Main.PlayerMode;
+import es.ucm.fdi.tp.assignment5.SwingCommon;
 import es.ucm.fdi.tp.basecode.bgame.control.Controller;
 import es.ucm.fdi.tp.basecode.bgame.control.Player;
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
@@ -40,9 +41,10 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	private List<Piece> pieces;
 	private Map<Piece, Color> pieceColors;
 	private Map<Piece, PlayerMode> playerModes;
+	private JTextArea messages;
 
 	public SwingView(Observable<GameObserver> g, Controller c, Piece lp, Player randPlayer, Player aiPlayer) {
-		super("hello");
+		super();
 		ctrl = c;
 		localPiece = lp;
 		initGUI();
@@ -53,7 +55,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		// TODO control init
 		
 		
-		JTextArea messages = new JTextArea("here will be messages");
+		messages = new JTextArea("here will be messages");
 		messages.setEditable(false);
 		messages.setLineWrap(true);
 		messages.setWrapStyleWord(true);
@@ -61,6 +63,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		JScrollPane messagePane = new JScrollPane(messages,
 				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		messagePane.setPreferredSize(new Dimension(300, 300));
 		
 		Border b = BorderFactory.createLineBorder(Color.BLACK);
 		
@@ -153,6 +156,9 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	}
 
 	final protected Color setPieceColor(Piece p, Color c) {
+		if (null == pieceColors){
+			pieceColors = new HashMap<Piece, Color>();
+		}
 		return pieceColors.put(p, c);
 	}
 
@@ -161,16 +167,13 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 			@Override
 			public void run() {
-
-				getContentPane().add(c, BorderLayout.CENTER);
-				
-			}
-			
+				getContentPane().add(c, BorderLayout.CENTER);				
+			}			
 		});
 	}
 
 	final protected void addMsg(String msg) {
-		// TODO implement
+		messages.setText(messages.getText() + "\n" + msg);
 	}
 
 	final protected void decideMakeManulaMove(Player manualPlayer) {
@@ -194,7 +197,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				handleGameStart();
+				handleGameStart(board, gameDesc, pieces);
 			}
 		});
 	}
@@ -234,7 +237,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				handleOnChangeTurn();
+				handleOnChangeTurn(turn);
 			}
 		});
 	}
@@ -244,17 +247,35 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				handleOnError();
+				handleOnError(msg);
 			}
 		});
 	}
 
-	private void handleGameStart() {
+	private void handleGameStart(Board board, String gameDesc, List<Piece> pieces) {
 		// TODO Auto-generated method stub
+		this.board = board;
+		if (null != localPiece){
+			this.setTitle("Board Games: " + gameDesc + "("
+					+ localPiece.toString() + ")");
+		}
+		else {
+			this.setTitle("Board Games: " + gameDesc);
+		}
+		this.pieces = pieces;
 		
+		Random r = new Random();
+		for (Piece p : pieces){
+			setPieceColor(p, SwingCommon.createRandomColor(r));
+		}
+		
+		redrawBoard();
+		messages.setText(gameDesc + " is started");
 	}
 
 	private void handleOnGameOver() {
+		this.ctrl.stop();
+		addMsg("\nThe Game is over.");
 		// TODO Auto-generated method stub
 		
 	}
@@ -269,13 +290,20 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		
 	}
 
-	protected void handleOnChangeTurn() {
-		// TODO Auto-generated method stub
+	protected void handleOnChangeTurn(Piece turn) {
+		this.turn = turn;
 		
+		if (null != localPiece){
+			if (localPiece.equals(turn)){
+				addMsg("The next player is " + turn + " (You)");
+			}
+		}
+		else {
+			addMsg("The next player is " + turn);
+		}
 	}
 
-	protected void handleOnError() {
-		// TODO Auto-generated method stub
-		
+	protected void handleOnError(String msg) {
+		addMsg("[Error] " + msg);
 	}
 }

@@ -1,5 +1,8 @@
 package es.ucm.fdi.tp.assignment5;
 
+import java.awt.Color;
+import java.util.Random;
+
 import es.ucm.fdi.tp.basecode.bgame.control.Controller;
 import es.ucm.fdi.tp.basecode.bgame.control.Player;
 import es.ucm.fdi.tp.basecode.bgame.model.GameObserver;
@@ -7,38 +10,52 @@ import es.ucm.fdi.tp.basecode.bgame.model.Observable;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
 @SuppressWarnings("serial")
-public class RectBoardSwingView extends SwingView {
-	
-	private int dim;
-	BoardComponent boardComp;
+public abstract class RectBoardSwingView extends SwingView {
 
-	public RectBoardSwingView(Observable<GameObserver> g, Controller c,
-			Piece lp, Player randPlayer, Player aiPlayer, int size) {
+	private BoardComponent boardComp;
+
+	public RectBoardSwingView(Observable<GameObserver> g, Controller c, Piece lp, Player randPlayer, Player aiPlayer) {
 		super(g, c, lp, randPlayer, aiPlayer);
-		this.dim = size;
 	}
 
 	@Override
 	protected void initBoardGUI() {
-		boardComp = new BoardComponent(5, 5);
+		boardComp = new BoardComponent() {
+
+			@Override
+			protected Color getPieceColor(Piece p) {
+				return RectBoardSwingView.this.getPieceColor(p);
+			}
+
+			@Override
+			protected boolean isPlayerPiece(Piece p) {
+				return getPieces().contains(p);
+			}
+
+			@Override
+			protected void mouseClick(int row, int col, int mouseBtn) {
+				handleMouseClick(row, col, mouseBtn);
+			}
+		};
 		setBoardArea(boardComp);
 	}
 
 	@Override
 	protected void activateBoard() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	protected void deActivateBoard() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	protected void redrawBoard() {
-		// TODO Auto-generated method stub
-		
+		boardComp.redraw(getBoard());
 	}
+
+	protected abstract void handleMouseClick(int row, int col, int mouseBtn);
 }

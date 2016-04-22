@@ -28,7 +28,7 @@ public class AtaxxFactoryExt extends AtaxxFactory {
 
 			@Override
 			public void run() {
-				GameObserver o = new AtaxxSwingView(g, c, viewPiece, ai, ai, dim);
+				GameObserver o = new AtaxxSwingView(g, c, viewPiece, ai, ai);
 				g.addObserver(o);
 			}			
 		});

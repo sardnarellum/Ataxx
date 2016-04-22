@@ -749,7 +749,7 @@ public class Main {
 			c = new ConsoleCtrlMVC(g, pieces, players, new Scanner(System.in));
 			gameFactory.createConsoleView(g, c);
 			break;
-		case WINDOW:		
+		case WINDOW:	
 			c = new Controller(g, pieces);
 			if (multiviews){
 				for (Piece p : pieces) { // multi-window
