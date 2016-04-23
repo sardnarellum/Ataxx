@@ -78,7 +78,8 @@ public class Main {
 	 * Juegos disponibles.
 	 */
 	enum GameInfo {
-		ATAXX("ax", "Ataxx"), CONNECTN("cn", "ConnectN"), TicTacToe("ttt", "Tic-Tac-Toe"), AdvancedTicTacToe("attt", "Advanced Tic-Tac-Toe");
+		ATAXX("ax", "Ataxx"), CONNECTN("cn", "ConnectN"), TicTacToe("ttt", "Tic-Tac-Toe"), AdvancedTicTacToe("attt",
+				"Advanced Tic-Tac-Toe");
 
 		private String id;
 		private String desc;
@@ -239,15 +240,15 @@ public class Main {
 	 * utiliza, por lo que siempre es {@code null}.
 	 */
 	private static AIAlgorithm aiPlayerAlg;
-	
+
 	/**
 	 * Number of quadrant of obstacles to be generated.
 	 */
 	private static int qObstacles = 0;
 
 	/**
-	 * Processes the command-line arguments and modify the fields of this
-	 * class with corresponding values. E.g., the factory, the pieces, etc.
+	 * Processes the command-line arguments and modify the fields of this class
+	 * with corresponding values. E.g., the factory, the pieces, etc.
 	 *
 	 * <p>
 	 * Procesa la linea de ordenes del programa y crea los objetos necesarios
@@ -516,18 +517,18 @@ public class Main {
 		String gameVal = line.getOptionValue("g", DEFAULT_GAME.getId());
 		GameInfo selectedGame = null;
 
-		for( GameInfo g : GameInfo.values() ) {
-			if ( g.getId().equals(gameVal) ) {
+		for (GameInfo g : GameInfo.values()) {
+			if (g.getId().equals(gameVal)) {
 				selectedGame = g;
 				break;
 			}
 		}
 
-		if ( selectedGame == null ) {
+		if (selectedGame == null) {
 			throw new ParseException("Uknown game '" + gameVal + "'");
 		}
-	
-		switch ( selectedGame ) {
+
+		switch (selectedGame) {
 		case AdvancedTicTacToe:
 			gameFactory = new AdvancedTTTFactoryExt();
 			break;
@@ -551,7 +552,7 @@ public class Main {
 		default:
 			throw new UnsupportedOperationException("Something went wrong! This program point should be unreachable!");
 		}
-	
+
 	}
 
 	/**
@@ -643,11 +644,11 @@ public class Main {
 
 	/**
 	 * Builds the obstacles (-o or --obstacles) CLI option.
+	 * 
 	 * @return CLI {@link Option} for the obstacles option.
 	 */
-	private static Option constructObstaclesOption() {	
-		Option opt = new Option("o", "obstacles", true,
-				"Generate obstacles for each quadrant of the table.");
+	private static Option constructObstaclesOption() {
+		Option opt = new Option("o", "obstacles", true, "Generate obstacles for each quadrant of the table.");
 		opt.setArgName("qty in a quadrant");
 		return opt;
 	}
@@ -655,6 +656,7 @@ public class Main {
 	/**
 	 * Parses the obstacles option (-o or --obstacles). It sets the value of
 	 * {@link qObstacles}.
+	 * 
 	 * @param line
 	 * @throws ParseException
 	 */
@@ -663,7 +665,7 @@ public class Main {
 		if (null != oVal) {
 			try {
 				qObstacles = Integer.parseInt(oVal);
-			} catch (NumberFormatException e){
+			} catch (NumberFormatException e) {
 				throw new ParseException("Invalid obstacles parameter: " + oVal);
 			}
 		}
@@ -749,21 +751,20 @@ public class Main {
 			c = new ConsoleCtrlMVC(g, pieces, players, new Scanner(System.in));
 			gameFactory.createConsoleView(g, c);
 			break;
-		case WINDOW:	
+		case WINDOW:
 			c = new Controller(g, pieces);
-			if (multiviews){
-				for (Piece p : pieces) { // multi-window
+			if (multiviews) { // multi-window
+				for (Piece p : pieces) {
 					gameFactory.createSwingView(g, c, p,
 							gameFactory.createRandomPlayer(),
 							gameFactory.createAIPlayer(aiPlayerAlg));
-				}	
-			}
-			else {
+				}
+			} else { // single-window
 				gameFactory.createSwingView(g, c, null,
 						gameFactory.createRandomPlayer(),
 						gameFactory.createAIPlayer(aiPlayerAlg));
 			}
-			
+
 			break;
 		default:
 			throw new UnsupportedOperationException("Something went wrong! This program point should be unreachable!");

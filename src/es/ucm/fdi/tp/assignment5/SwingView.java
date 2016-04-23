@@ -2,7 +2,10 @@ package es.ucm.fdi.tp.assignment5;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +23,7 @@ import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
+import javax.swing.table.TableCellRenderer;
 
 import es.ucm.fdi.tp.assignment5.Main.PlayerMode;
 import es.ucm.fdi.tp.assignment5.SwingCommon;
@@ -42,19 +46,19 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	private Map<Piece, Color> pieceColors;
 	private Map<Piece, PlayerMode> playerModes;
 	private JTextArea messages;
-	private JComboBox<String> colorPlayers;
-	private JComboBox<String> modePlayers;
+	private JComboBox<String> playerColorsCB;
+	private JComboBox<String> playerModesCB;
+	private PlayerTableModel tmodel;
 
 	public SwingView(Observable<GameObserver> g, Controller c, Piece lp, Player randPlayer, Player aiPlayer) {
 		super();
 		ctrl = c;
 		localPiece = lp;
+		playerModes = new HashMap<Piece, Main.PlayerMode>();
 		initGUI();
 	}
 
 	private void initGUI() {
-		// TODO control init
-
 		messages = new JTextArea();
 		messages.setEditable(false);
 		messages.setLineWrap(true);
@@ -66,8 +70,22 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		Border b = BorderFactory.createLineBorder(Color.BLACK);
 
-		PlayerTableModel tmodel = new PlayerTableModel();
-		JTable playerInfoTable = new JTable(tmodel);
+		tmodel = new PlayerTableModel();
+		JTable playerInfoTable = new JTable(tmodel) {
+			@Override
+			public Component prepareRenderer(TableCellRenderer renderer, int row, int col) {
+				Component comp = super.prepareRenderer(renderer, row, col);
+				Color c = pieceColors.get(pieces.get(row));
+				comp.setBackground(pieceColors.get(pieces.get(row)));
+
+				if (c.getBlue() < 200 && c.getGreen() < 180 && c.getRed() < 160) {
+					comp.setForeground(Color.white);
+				} else {
+					comp.setForeground(Color.black);
+				}
+				return comp;
+			}
+		};
 
 		JPanel playerInfo = new JPanel();
 		playerInfo.setBorder(BorderFactory.createTitledBorder(b, "Player Information"));
@@ -78,21 +96,40 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		colors.setLayout(new BoxLayout(colors, BoxLayout.X_AXIS));
 		colors.setBorder(BorderFactory.createTitledBorder(b, "Piece Colors"));
 
-		colorPlayers = new JComboBox<String>();
+		playerColorsCB = new JComboBox<String>();
 
 		JButton chooseColorBtn = new JButton("Choose Color");
-		colors.add(colorPlayers);
+		colors.add(playerColorsCB);
 		colors.add(chooseColorBtn);
+
+		chooseColorBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				try {
+					// int n = Integer.parseInt(line.getText());
+					Piece p = pieces.get(playerColorsCB.getSelectedIndex());
+					ColorChooser c = new ColorChooser(new JFrame(), "Choose Line Color", pieceColors.get(p));
+					if (c.getColor() != null) {
+						pieceColors.put(p, c.getColor());
+						tmodel.refresh();
+						redrawBoard();
+					}
+				} catch (Exception _e) {
+					addMsg(_e.getMessage());
+				}
+			}
+		});
 
 		JPanel modes = new JPanel();
 		modes.setLayout(new BoxLayout(modes, BoxLayout.X_AXIS));
 		modes.setBorder(BorderFactory.createTitledBorder(b, "Player Modes"));
 
-		modePlayers = new JComboBox<String>();
+		playerModesCB = new JComboBox<String>();
 		JComboBox<String> modesCBox = new JComboBox<String>();
 		JButton setModeBtn = new JButton("Set");
 
-		modes.add(modePlayers);
+		modes.add(playerModesCB);
 		modes.add(modesCBox);
 		modes.add(setModeBtn);
 
@@ -125,7 +162,6 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		dashboardPanel.add(colors);
 		dashboardPanel.add(modes);
 		dashboardPanel.add(autoOptions);
-		// dashboardPanel.add(new JSeparator(SwingConstants.HORIZONTAL));
 		dashboardPanel.add(quitRestartPanel);
 
 		JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
@@ -173,7 +209,11 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	}
 
 	final protected void addMsg(String msg) {
-		messages.setText(messages.getText() + (messages.getText() != "" ? "\n" : "") + msg);
+		if (messages.getText().length() == 0) {
+			messages.setText(msg);
+		} else {
+			messages.setText(messages.getText() + "\n" + msg);
+		}
 	}
 
 	final protected void decideMakeManualMove(Player manualPlayer) {
@@ -181,7 +221,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	}
 
 	private void decideMakeAutomaticMove() {
-
+		// TODO implement automatic behaviors
 	}
 
 	protected abstract void initBoardGUI();
@@ -208,7 +248,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				handleOnGameOver();
+				handleOnGameOver(state, winner);
 			}
 		});
 	}
@@ -265,33 +305,39 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		this.pieces = pieces;
 
 		Random r = new Random();
-		colorPlayers.removeAllItems();
 
 		for (Piece p : pieces) {
 			setPieceColor(p, SwingCommon.createRandomColor(r));
-			colorPlayers.addItem(p.toString());
+			playerColorsCB.addItem(p.toString());
+			playerModesCB.addItem(p.toString());
+			playerModes.put(p, PlayerMode.MANUAL);
+			if (null != board.getPieceCount(p)) {
+				tmodel.setRow(p, pieceColors.get(p), playerModes.get(p), board.getPieceCount(p));
+			} else {
+				tmodel.setRow(p, pieceColors.get(p), playerModes.get(p));
+			}
 		}
 
+		tmodel.refresh();
 		redrawBoard();
-		messages.setText("");
 		addMsg(gameDesc + " is started");
 	}
 
-	private void handleOnGameOver() {
-		this.ctrl.stop();
-		addMsg("\nThe Game is over.");
-		// TODO Auto-generated method stub
-
+	private void handleOnGameOver(State state, Piece winner) {
+		addMsg("GAME OVER");
+		if (null != winner) {
+			addMsg("The winner is: " + winner);
+		}
 	}
 
 	protected void handleOnMoveStart() {
-		// TODO Auto-generated method stub
-
+		deActivateBoard();
 	}
 
 	protected void handleOnMoveEnd(Board board) {
 		this.board = board;
 		redrawBoard();
+		activateBoard();
 	}
 
 	protected void handleOnChangeTurn(Piece turn) {
@@ -307,6 +353,10 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			}
 		} else {
 			addMsg("The next player is " + turn);
+		}
+
+		if (playerModes.get(turn) != PlayerMode.MANUAL) {
+			decideMakeAutomaticMove();
 		}
 	}
 

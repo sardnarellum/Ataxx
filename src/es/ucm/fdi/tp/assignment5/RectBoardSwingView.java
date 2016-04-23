@@ -1,7 +1,6 @@
 package es.ucm.fdi.tp.assignment5;
 
 import java.awt.Color;
-import java.util.Random;
 
 import es.ucm.fdi.tp.basecode.bgame.control.Controller;
 import es.ucm.fdi.tp.basecode.bgame.control.Player;
@@ -42,14 +41,12 @@ public abstract class RectBoardSwingView extends SwingView {
 
 	@Override
 	protected void activateBoard() {
-		// TODO Auto-generated method stub
-
+		boardComp.setEnabled(true);
 	}
 
 	@Override
 	protected void deActivateBoard() {
-		// TODO Auto-generated method stub
-
+		boardComp.setEnabled(false);
 	}
 
 	@Override
