@@ -320,10 +320,12 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		tmodel.refresh();
 		redrawBoard();
+		activateBoard();
 		addMsg(gameDesc + " is started");
 	}
 
 	private void handleOnGameOver(State state, Piece winner) {
+		deActivateBoard();
 		addMsg("GAME OVER");
 		if (null != winner) {
 			addMsg("The winner is: " + winner);

@@ -15,46 +15,49 @@ public abstract class BoardComponent extends JComponent {
 
 	private int _CELL_HEIGHT = 50;
 	private int _CELL_WIDTH = 50;
+	private boolean enabled;
 
 	private Board board;
-	
-	public BoardComponent(){
+
+	public BoardComponent() {
+		enabled = true;
 		initGUI();
 	}
-	
-	private void initGUI(){
-		addMouseListener(new MouseListener(){
+
+	private void initGUI() {
+		addMouseListener(new MouseListener() {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void mousePressed(MouseEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void mouseReleased(MouseEvent e) {
-				mouseClick(e.getX() / _CELL_WIDTH, e.getY() / _CELL_HEIGHT,
-						e.getButton());			
+				if (enabled) {
+					mouseClick(e.getX() / _CELL_WIDTH, e.getY() / _CELL_HEIGHT, e.getButton());
+				}
 			}
 
 			@Override
 			public void mouseEntered(MouseEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
 
 			@Override
 			public void mouseExited(MouseEvent e) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 		});
 	}
 
@@ -83,8 +86,7 @@ public abstract class BoardComponent extends JComponent {
 			g.fillOval(x + 4, y + 4, _CELL_WIDTH - 8, _CELL_HEIGHT - 8);
 			g.setColor(Color.black);
 			g.drawOval(x + 4, y + 4, _CELL_WIDTH - 8, _CELL_HEIGHT - 8);
-		}
-		else if (null != p) {
+		} else if (null != p) {
 			g.setColor(Color.darkGray);
 			g.fillRect(x + 4, y + 4, _CELL_WIDTH - 8, _CELL_HEIGHT - 8);
 			g.setColor(Color.black);
@@ -108,6 +110,12 @@ public abstract class BoardComponent extends JComponent {
 	public void redraw(Board board) {
 		this.board = board;
 		repaint();
+	}
+
+	@Override
+	public void setEnabled(boolean enabled) {
+		super.setEnabled(enabled);
+		this.enabled = enabled;
 	}
 
 	protected abstract Color getPieceColor(Piece p);
