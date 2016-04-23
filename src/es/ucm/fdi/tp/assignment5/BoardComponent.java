@@ -2,6 +2,8 @@ package es.ucm.fdi.tp.assignment5;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 import javax.swing.JComponent;
 
@@ -15,6 +17,46 @@ public abstract class BoardComponent extends JComponent {
 	private int _CELL_WIDTH = 50;
 
 	private Board board;
+	
+	public BoardComponent(){
+		initGUI();
+	}
+	
+	private void initGUI(){
+		addMouseListener(new MouseListener(){
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				mouseClick(e.getX() / _CELL_WIDTH, e.getY() / _CELL_HEIGHT,
+						e.getButton());			
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
+	}
 
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
@@ -25,7 +67,7 @@ public abstract class BoardComponent extends JComponent {
 
 			for (int i = 0; i < getRows(); i++)
 				for (int j = 0; j < getCols(); j++)
-					drawCell(i, j, board.getPosition(i, j), g);
+					drawCell(i, j, board.getPosition(j, i), g);
 		}
 	}
 
