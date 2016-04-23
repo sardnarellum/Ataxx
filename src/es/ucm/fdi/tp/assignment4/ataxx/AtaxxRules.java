@@ -158,6 +158,13 @@ public class AtaxxRules implements GameRules {
 				return new Pair<State, Piece>(State.Won, winner);
 			}
 		}
+		else {
+			Piece winner = AtaxxCommon.uniqueWinner(board, pieces);
+			
+			if (null != winner){
+				return new Pair<State, Piece>(State.Won, winner);
+			}
+		}
 		
 		return gameInPlayResult;
 	}
