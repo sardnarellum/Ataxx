@@ -1,6 +1,5 @@
 package es.ucm.fdi.tp.assignment5;
 
-import java.awt.Color;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,7 +15,6 @@ public class PlayerTableModel extends AbstractTableModel {
 
 	private final String colNames[];
 	private List<Piece> pieces;
-	private Map<Piece, Color> colors;
 	private Map<Piece, PlayerMode> modes;
 	private Map<Piece, Integer> scores;
 	private Boolean showScores;
@@ -24,7 +22,6 @@ public class PlayerTableModel extends AbstractTableModel {
 	public PlayerTableModel() {
 		colNames = new String[] { "Player", "Mode", "Pieces" };
 		pieces = new ArrayList<Piece>();
-		colors = new HashMap<Piece, Color>();
 		modes = new HashMap<Piece, PlayerMode>();
 		scores = new HashMap<Piece, Integer>();
 		showScores = true;
@@ -34,20 +31,14 @@ public class PlayerTableModel extends AbstractTableModel {
 		fireTableDataChanged();
 	}
 	
-	public void setRow(Piece p, Color c, PlayerMode m){
+	public void setRow(Piece p, PlayerMode m){
 		addPieceIfNotExists(p);
-		colors.put(p, c);
 		modes.put(p, m);
 	}
 	
-	public void setRow(Piece p, Color c, PlayerMode m, Integer s){
-		setRow(p, c, m);
+	public void setRow(Piece p, PlayerMode m, Integer s){
+		setRow(p, m);
 		scores.put(p, s);
-	}
-
-	public void setColor(Piece p, Color c) {
-		addPieceIfNotExists(p);
-		colors.put(p, c);
 	}
 
 	public void setMode(Piece p, PlayerMode m) {
@@ -87,7 +78,7 @@ public class PlayerTableModel extends AbstractTableModel {
 			return pieces.get(rowIndex);
 		}
 		else if (1 == columnIndex){
-			return modes.get(pieces.get(rowIndex));
+			return modes.get(pieces.get(rowIndex)).getDesc();
 		}
 		else if (2 == columnIndex){
 			return scores.get(pieces.get(rowIndex));

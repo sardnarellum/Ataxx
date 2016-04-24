@@ -41,6 +41,8 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	private Controller ctrl;
 	private Piece localPiece;
 	private Piece turn;
+	private Player randPlayer;
+	private Player aiPlayer;
 	private Board board;
 	private List<Piece> pieces;
 	private Map<Piece, Color> pieceColors;
@@ -54,7 +56,9 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		super();
 		ctrl = c;
 		localPiece = lp;
-		playerModes = new HashMap<Piece, Main.PlayerMode>();
+		playerModes = new HashMap<Piece, PlayerMode>();
+		this.randPlayer = randPlayer;
+		this.aiPlayer = aiPlayer;
 		initGUI();
 	}
 
@@ -107,13 +111,17 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
-					// int n = Integer.parseInt(line.getText());
 					Piece p = pieces.get(playerColorsCB.getSelectedIndex());
 					ColorChooser c = new ColorChooser(new JFrame(), "Choose Line Color", pieceColors.get(p));
 					if (c.getColor() != null) {
 						pieceColors.put(p, c.getColor());
-						tmodel.refresh();
-						redrawBoard();
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								tmodel.refresh();
+								redrawBoard();
+							}
+						});
 					}
 				} catch (Exception _e) {
 					addMsg(_e.getMessage());
@@ -126,8 +134,34 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		modes.setBorder(BorderFactory.createTitledBorder(b, "Player Modes"));
 
 		playerModesCB = new JComboBox<String>();
+
 		JComboBox<String> modesCBox = new JComboBox<String>();
+
+		for (int i = 0; i < PlayerMode.values().length; ++i) {
+			modesCBox.addItem(PlayerMode.values()[i].getDesc());
+		}
+
 		JButton setModeBtn = new JButton("Set");
+		setModeBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				final Piece p = pieces.get(playerModesCB.getSelectedIndex());
+				PlayerMode m = PlayerMode.values()[modesCBox.getSelectedIndex()];
+				playerModes.put(p, m);
+				SwingUtilities.invokeLater(new Runnable() {
+					@Override
+					public void run() {
+						tmodel.setMode(p, m);
+						tmodel.refresh();
+						if (p == turn) {
+							decideMakeAutomaticMove();
+						}
+					}
+				});
+			}
+
+		});
 
 		modes.add(playerModesCB);
 		modes.add(modesCBox);
@@ -221,7 +255,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	}
 
 	private void decideMakeAutomaticMove() {
-		// TODO implement automatic behaviors
+		ctrl.makeMove(playerModes.get(turn) == PlayerMode.AI ? aiPlayer : randPlayer);
 	}
 
 	protected abstract void initBoardGUI();
@@ -312,9 +346,9 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			playerModesCB.addItem(p.toString());
 			playerModes.put(p, PlayerMode.MANUAL);
 			if (null != board.getPieceCount(p)) {
-				tmodel.setRow(p, pieceColors.get(p), playerModes.get(p), board.getPieceCount(p));
+				tmodel.setRow(p, playerModes.get(p), board.getPieceCount(p));
 			} else {
-				tmodel.setRow(p, pieceColors.get(p), playerModes.get(p));
+				tmodel.setRow(p, playerModes.get(p));
 			}
 		}
 
@@ -339,7 +373,10 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	protected void handleOnMoveEnd(Board board) {
 		this.board = board;
 		redrawBoard();
-		activateBoard();
+
+		if (playerModes.get(turn) == PlayerMode.MANUAL) {
+			activateBoard();
+		}
 	}
 
 	protected void handleOnChangeTurn(Piece turn) {
@@ -347,14 +384,19 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		if (null != localPiece) {
 			if (localPiece.equals(turn)) {
-				activateBoard();
 				addMsg("The next player is " + turn + " (You)");
+				if (playerModes.get(turn) == PlayerMode.MANUAL) {
+					activateBoard();
+				}
 			} else {
 				deActivateBoard();
 				addMsg("The next player is " + turn);
 			}
 		} else {
 			addMsg("The next player is " + turn);
+			if (playerModes.get(turn) == PlayerMode.MANUAL) {
+				activateBoard();
+			}
 		}
 
 		if (playerModes.get(turn) != PlayerMode.MANUAL) {

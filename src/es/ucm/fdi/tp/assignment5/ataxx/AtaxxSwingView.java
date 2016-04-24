@@ -19,7 +19,6 @@ public class AtaxxSwingView extends RectBoardSwingView {
 
 	@Override
 	protected void handleMouseClick(int row, int col, int mouseBtn) {
-		// addMsg(row + " " + col + " " + mouseBtn);
 		if (1 == mouseBtn) {
 			if (null == currentSource) {
 				Piece p = getBoard().getPosition(row, col);
@@ -43,6 +42,5 @@ public class AtaxxSwingView extends RectBoardSwingView {
 			currentSource = null;
 			addMsg("Click on an Origin cell");
 		}
-		// decideMakeManualMove(p);
 	}
 }
