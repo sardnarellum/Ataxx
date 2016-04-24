@@ -12,9 +12,20 @@ import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 public class AtaxxSwingView extends RectBoardSwingView {
 
 	private Pair<Integer, Integer> currentSource;
+	Boolean hintDisplayed;
 
 	public AtaxxSwingView(Observable<GameObserver> g, Controller c, Piece lp, Player randPlayer, Player aiPlayer) {
 		super(g, c, lp, randPlayer, aiPlayer);
+		hintDisplayed = false;
+	}
+	
+	@Override
+	protected void handleOnChangeTurn(Piece turn) {
+		super.handleOnChangeTurn(turn);
+		if (!hintDisplayed){
+			addMsg("1: Click one of your pieces.\n2: Click on an empty cell in the distance of one or two cells from your piece.\nYou can cancel the selection with a right click on the board.");
+			hintDisplayed = true;
+		}
 	}
 
 	@Override
