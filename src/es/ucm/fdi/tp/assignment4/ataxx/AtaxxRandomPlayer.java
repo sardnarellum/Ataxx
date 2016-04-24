@@ -53,8 +53,7 @@ public class AtaxxRandomPlayer extends Player {
 	}
 
 	private GameMove createMove(int currRowF, int currColF, int currRowT, int currColT, Piece p) {
-		return new AtaxxMove(currRowF, currColF, currRowT, currColT, p); // dummy
-																			// arguments
+		return new AtaxxMove(currRowF, currColF, currRowT, currColT, p);
 	}
 
 }

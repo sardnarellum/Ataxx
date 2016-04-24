@@ -146,7 +146,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				final Piece p = pieces.get(playerModesCB.getSelectedIndex());
+				final Piece p = localPiece == null ? pieces.get(playerModesCB.getSelectedIndex()) : localPiece;
 				PlayerMode m = PlayerMode.values()[modesCBox.getSelectedIndex()];
 				playerModes.put(p, m);
 				SwingUtilities.invokeLater(new Runnable() {
@@ -154,9 +154,6 @@ public abstract class SwingView extends JFrame implements GameObserver {
 					public void run() {
 						tmodel.setMode(p, m);
 						tmodel.refresh();
-						if (p == turn) {
-							decideMakeAutomaticMove();
-						}
 					}
 				});
 			}
@@ -184,6 +181,12 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		exitBtn.setAlignmentX(CENTER_ALIGNMENT);
 
 		JButton restartBtn = new JButton("Restart");
+		restartBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ctrl.restart();
+			}
+		});
 		restartBtn.setAlignmentX(CENTER_ALIGNMENT);
 
 		quitRestartPanel.add(exitBtn);
@@ -340,16 +343,26 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		Random r = new Random();
 
+		playerModesCB.removeAllItems();
+		playerColorsCB.removeAllItems();
+
 		for (Piece p : pieces) {
 			setPieceColor(p, SwingCommon.createRandomColor(r));
 			playerColorsCB.addItem(p.toString());
-			playerModesCB.addItem(p.toString());
+
+			if (null == localPiece) {
+				playerModesCB.addItem(p.toString());
+			}
 			playerModes.put(p, PlayerMode.MANUAL);
 			if (null != board.getPieceCount(p)) {
 				tmodel.setRow(p, playerModes.get(p), board.getPieceCount(p));
 			} else {
 				tmodel.setRow(p, playerModes.get(p));
 			}
+		}
+
+		if (null != localPiece) {
+			playerModesCB.addItem(localPiece.toString());
 		}
 
 		tmodel.refresh();
@@ -361,9 +374,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	private void handleOnGameOver(State state, Piece winner) {
 		deActivateBoard();
 		addMsg("GAME OVER");
-		if (null != winner) {
-			addMsg("The winner is: " + winner);
-		}
+		printState(state, winner);
 	}
 
 	protected void handleOnMoveStart() {
@@ -372,6 +383,12 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 	protected void handleOnMoveEnd(Board board) {
 		this.board = board;
+		
+		for (Piece p : pieces){
+			Integer c = board.getPieceCount(p);
+			tmodel.setScore(p, c);
+		}
+		tmodel.refresh();
 		redrawBoard();
 
 		if (playerModes.get(turn) == PlayerMode.MANUAL) {
@@ -388,6 +405,9 @@ public abstract class SwingView extends JFrame implements GameObserver {
 				if (playerModes.get(turn) == PlayerMode.MANUAL) {
 					activateBoard();
 				}
+				else {
+					decideMakeAutomaticMove();					
+				}
 			} else {
 				deActivateBoard();
 				addMsg("The next player is " + turn);
@@ -397,14 +417,35 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			if (playerModes.get(turn) == PlayerMode.MANUAL) {
 				activateBoard();
 			}
-		}
-
-		if (playerModes.get(turn) != PlayerMode.MANUAL) {
-			decideMakeAutomaticMove();
+			else {
+				decideMakeAutomaticMove();				
+			}
 		}
 	}
 
 	protected void handleOnError(String msg) {
 		addMsg("[Error] " + msg);
+	}
+
+	private void printState(State state, Piece winner) {
+		switch (state) {
+		case Draw:
+			addMsg("The Game is ended with Draw.");
+			break;
+		case InPlay:
+			addMsg("The Game is in progress.");
+			break;
+		case Starting:
+			addMsg("The Game is about to start.");
+			break;
+		case Stopped:
+			addMsg("The Game is stopped");
+			break;
+		case Won:
+			if (null != winner) {
+				addMsg("The winner is: " + winner);
+			}
+			break;
+		}
 	}
 }

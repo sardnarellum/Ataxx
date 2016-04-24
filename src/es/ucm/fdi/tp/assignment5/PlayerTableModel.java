@@ -46,7 +46,7 @@ public class PlayerTableModel extends AbstractTableModel {
 		modes.put(p, m);
 	}
 
-	public void setScore(Piece p, int s) {
+	public void setScore(Piece p, Integer s) {
 		addPieceIfNotExists(p);
 		scores.put(p, s);
 	}
