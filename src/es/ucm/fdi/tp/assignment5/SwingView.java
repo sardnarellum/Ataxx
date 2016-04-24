@@ -52,6 +52,10 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	private JComboBox<String> playerColorsCB;
 	private JComboBox<String> playerModesCB;
 	private PlayerTableModel tmodel;
+	private JButton randomBtn;
+	private JButton automaticBtn;
+	private JButton exitBtn;
+	private JButton restartBtn;
 
 	public SwingView(Observable<GameObserver> g, Controller c, Piece lp, Player randPlayer, Player aiPlayer) {
 		super();
@@ -141,15 +145,17 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		playerModesCB = new JComboBox<String>();
 
 		JComboBox<PlayerModeExt> modesCBox = new JComboBox<PlayerModeExt>();
-		
-		modesCBox.addItem(new PlayerModeExt(PlayerMode.MANUAL));
-		
-		if (null != randPlayer){
-			modesCBox.addItem(new PlayerModeExt(PlayerMode.RANDOM));			
-		}
-		
-		if (null != aiPlayer){
-			modesCBox.addItem(new PlayerModeExt(PlayerMode.AI));
+
+		if (null != randPlayer || null != aiPlayer) {
+			modesCBox.addItem(new PlayerModeExt(PlayerMode.MANUAL));
+
+			if (null != randPlayer) {
+				modesCBox.addItem(new PlayerModeExt(PlayerMode.RANDOM));
+			}
+
+			if (null != aiPlayer) {
+				modesCBox.addItem(new PlayerModeExt(PlayerMode.AI));
+			}
 		}
 
 		JButton setModeBtn = new JButton("Set");
@@ -179,15 +185,34 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		JPanel autoOptions = new JPanel();
 		autoOptions.setBorder(BorderFactory.createTitledBorder(b, "Automatic Moves"));
 
-		JButton randomBtn = new JButton("Random");
-		JButton automaticBtn = new JButton("Automatic");
+		randomBtn = new JButton("Random");
+		randomBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				decideMakeRandomMove();
+			}
+		});
 
-		autoOptions.add(randomBtn);
-		autoOptions.add(automaticBtn);
+		automaticBtn = new JButton("Automatic");
+		automaticBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				decideMakeAutomaticMove();
+			}
+		});
+
+		if (null != randPlayer) {
+			autoOptions.add(randomBtn);
+		}
+
+		if (null != aiPlayer) {
+			autoOptions.add(automaticBtn);
+		}
 
 		JPanel quitRestartPanel = new JPanel();
 
-		JButton exitBtn = new JButton("Exit");
+		exitBtn = new JButton("Exit");
 		exitBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -195,7 +220,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			}
 		});
 
-		JButton restartBtn = new JButton("Restart");
+		restartBtn = new JButton("Restart");
 		restartBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -211,8 +236,12 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		dashboardPanel.add(statusMessages);
 		dashboardPanel.add(playerInfo);
 		dashboardPanel.add(colors);
-		dashboardPanel.add(modes);
-		dashboardPanel.add(autoOptions);
+
+		if (null != randPlayer || null != aiPlayer) {
+			dashboardPanel.add(modes);
+			dashboardPanel.add(autoOptions);
+		}
+
 		dashboardPanel.add(quitRestartPanel);
 		dashboardPanel.setPreferredSize(new Dimension(300, 600));
 
@@ -276,8 +305,16 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		ctrl.makeMove(manualPlayer);
 	}
 
-	private void decideMakeAutomaticMove() {
+	private void decideMakeRndOrAutoMove() {
 		ctrl.makeMove(playerModes.get(turn) == PlayerMode.AI ? aiPlayer : randPlayer);
+	}
+
+	private void decideMakeAutomaticMove() {
+		ctrl.makeMove(aiPlayer);
+	}
+
+	private void decideMakeRandomMove() {
+		ctrl.makeMove(randPlayer);
 	}
 
 	protected abstract void initBoardGUI();
@@ -392,12 +429,14 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 	private void handleOnGameOver(State state, Piece winner) {
 		deActivateBoard();
+		setExitRestartEnabled(true);
 		addMsg("GAME OVER");
 		printState(state, winner);
 	}
 
 	protected void handleOnMoveStart() {
-		deActivateBoard();
+		setExitRestartEnabled(false);
+		setUIEnabled(false);
 	}
 
 	protected void handleOnMoveEnd(Board board) {
@@ -411,7 +450,8 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		redrawBoard();
 
 		if (playerModes.get(turn) == PlayerMode.MANUAL) {
-			activateBoard();
+			setExitRestartEnabled(true);
+			setUIEnabled(true);
 		}
 	}
 
@@ -422,20 +462,23 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			if (localPiece.equals(turn)) {
 				addMsg("The next player is " + turn + " (You)");
 				if (playerModes.get(turn) == PlayerMode.MANUAL) {
-					activateBoard();
+					setUIEnabled(true);
+					setExitRestartEnabled(true);
 				} else {
-					decideMakeAutomaticMove();
+					decideMakeRndOrAutoMove();
 				}
 			} else {
-				deActivateBoard();
+				setExitRestartEnabled(false);
+				setUIEnabled(false);
 				addMsg("The next player is " + turn);
 			}
 		} else {
 			addMsg("The next player is " + turn);
 			if (playerModes.get(turn) == PlayerMode.MANUAL) {
-				activateBoard();
+				setExitRestartEnabled(true);
+				setUIEnabled(true);
 			} else {
-				decideMakeAutomaticMove();
+				decideMakeRndOrAutoMove();
 			}
 		}
 	}
@@ -464,5 +507,21 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			}
 			break;
 		}
+	}
+
+	private void setUIEnabled(Boolean enabled) {
+		automaticBtn.setEnabled(enabled);
+		randomBtn.setEnabled(enabled);
+
+		if (enabled) {
+			activateBoard();
+		} else {
+			deActivateBoard();
+		}
+	}
+	
+	private void setExitRestartEnabled(Boolean enabled){
+		exitBtn.setEnabled(enabled);
+		restartBtn.setEnabled(enabled);
 	}
 }
