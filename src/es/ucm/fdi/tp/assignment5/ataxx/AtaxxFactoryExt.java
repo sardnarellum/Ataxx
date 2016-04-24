@@ -11,7 +11,7 @@ import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
 @SuppressWarnings("serial")
 public class AtaxxFactoryExt extends AtaxxFactory {
-	
+
 	public AtaxxFactoryExt(int qObstacles, Integer dim) {
 		super(qObstacles, dim);
 	}
@@ -21,16 +21,15 @@ public class AtaxxFactoryExt extends AtaxxFactory {
 	}
 
 	@Override
-	public void createSwingView(final Observable<GameObserver> g,
-			final Controller c, final Piece viewPiece, Player random,
-			Player ai) {
-		SwingUtilities.invokeLater(new Runnable(){
+	public void createSwingView(final Observable<GameObserver> g, final Controller c, final Piece viewPiece,
+			Player random, Player ai) {
+		SwingUtilities.invokeLater(new Runnable() {
 
 			@Override
 			public void run() {
 				GameObserver o = new AtaxxSwingView(g, c, viewPiece, random, ai);
 				g.addObserver(o);
-			}			
+			}
 		});
 	}
 }

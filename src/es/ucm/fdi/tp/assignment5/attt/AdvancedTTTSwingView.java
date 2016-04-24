@@ -1,4 +1,4 @@
-package es.ucm.fdi.tp.assignment5.ataxx;
+package es.ucm.fdi.tp.assignment5.attt;
 
 import java.util.List;
 
@@ -16,23 +16,12 @@ import es.ucm.fdi.tp.basecode.bgame.model.Pair;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
 @SuppressWarnings("serial")
-public class AtaxxSwingView extends RectBoardSwingView {
-
+public class AdvancedTTTSwingView extends RectBoardSwingView {
 	private Pair<Integer, Integer> currentSource;
-	Boolean hintDisplayed;
 
-	public AtaxxSwingView(Observable<GameObserver> g, Controller c, Piece lp, Player randPlayer, Player aiPlayer) {
+	public AdvancedTTTSwingView(Observable<GameObserver> g, Controller c, Piece lp, Player randPlayer,
+			Player aiPlayer) {
 		super(g, c, lp, randPlayer, aiPlayer);
-		hintDisplayed = false;
-	}
-	
-	@Override
-	protected void handleOnChangeTurn(Piece turn) {
-		super.handleOnChangeTurn(turn);
-		if (!hintDisplayed){
-			addMsg("1: Click one of your pieces.\n2: Click on an empty cell in the distance of one or two cells from your piece.\nYou can cancel the selection with a right click on the board.");
-			hintDisplayed = true;
-		}
 	}
 
 	@Override
@@ -40,18 +29,14 @@ public class AtaxxSwingView extends RectBoardSwingView {
 		if (1 == mouseBtn) {
 			if (null == currentSource) {
 				Piece p = getBoard().getPosition(row, col);
-				if (null != p) {
-					if (p.equals(getTurn())) {
-						currentSource = new Pair<Integer, Integer>(row, col);
-						addMsg("Origin: (" + currentSource.getFirst() + "," + currentSource.getSecond() + ")");
-						addMsg("Click on a Destination cell");
-					} else {
-						currentSource = null;
-					}
+				if (null == p) {
+					currentSource = new Pair<Integer, Integer>(row, col);
+					addMsg("Origin: (" + currentSource.getFirst() + "," + currentSource.getSecond() + ")");
+					addMsg("Click on a Destination cell");
 				}
 			} else {
 				addMsg("Destination: (" + row + "," + col + ")");
-				TwoStepSwingPlayer player = new TwoStepSwingPlayer(){
+				TwoStepSwingPlayer player = new TwoStepSwingPlayer() {
 					@Override
 					public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {
 						return new AtaxxMove(getFromRow(), getFromCol(), getToRow(), getToCol(), p);
@@ -66,4 +51,5 @@ public class AtaxxSwingView extends RectBoardSwingView {
 			addMsg("Click on an Origin cell");
 		}
 	}
+
 }
