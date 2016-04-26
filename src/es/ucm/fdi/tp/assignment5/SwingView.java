@@ -173,6 +173,9 @@ public abstract class SwingView extends JFrame implements GameObserver {
 					public void run() {
 						tmodel.setMode(p, m);
 						tmodel.refresh();
+						if (turn.equals(p)){
+							decideMakeRndOrAutoMove();
+						}
 					}
 				});
 			}

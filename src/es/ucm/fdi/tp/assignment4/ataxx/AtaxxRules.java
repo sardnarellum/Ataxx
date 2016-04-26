@@ -30,7 +30,7 @@ public class AtaxxRules implements GameRules {
 			new Pair<State, Piece>(State.Draw, null);
 	
 	private final int dim;
-	private int qObs;
+	private final int qObs;
 
 	private Piece obstPiece;
 	
@@ -92,16 +92,17 @@ public class AtaxxRules implements GameRules {
 			obstPiece = getUniquePiece(pieces);
 		}
 		
-		while (qObs > 0){
+		int q = qObs;		
+		while (q > 0){
 			ArrayList<Pair<Integer, Integer>> l = 
 					AtaxxCommon.emptyPlacesQuadrant(board);
 			if (l.size() == 0){
-				qObs = 0;
+				q = 0;
 			} else {
 				Pair<Integer, Integer> p = l.get(Utils.randomInt(l.size()));
 				AtaxxCommon.setInAllQuadrants(p.getFirst(), p.getSecond(),
 						board, obstPiece);
-				--qObs;
+				--q;
 			}
 		}
 		
