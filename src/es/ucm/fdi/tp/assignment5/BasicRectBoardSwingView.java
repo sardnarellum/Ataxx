@@ -23,17 +23,15 @@ public class BasicRectBoardSwingView extends RectBoardSwingView {
 	@Override
 	protected void handleMouseClick(int row, int col, int mouseBtn) {
 		if (1 == mouseBtn) {
-			Player pl = new Player(){
+			Player pl = new Player() {
 
 				@Override
-				public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {					// TODO Auto-generated method stub
+				public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {
 					return new ConnectNMove(row, col, p);
 				}
-				
+
 			};
-			
 			decideMakeManualMove(pl);
 		}
 	}
-
 }

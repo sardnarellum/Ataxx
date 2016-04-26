@@ -2,9 +2,9 @@ package es.ucm.fdi.tp.assignment5.attt;
 
 import java.util.List;
 
-import es.ucm.fdi.tp.assignment4.ataxx.AtaxxMove;
 import es.ucm.fdi.tp.assignment5.RectBoardSwingView;
 import es.ucm.fdi.tp.assignment5.TwoStepSwingPlayer;
+import es.ucm.fdi.tp.basecode.attt.AdvancedTTTMove;
 import es.ucm.fdi.tp.basecode.bgame.control.Controller;
 import es.ucm.fdi.tp.basecode.bgame.control.Player;
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
@@ -39,7 +39,7 @@ public class AdvancedTTTSwingView extends RectBoardSwingView {
 				TwoStepSwingPlayer player = new TwoStepSwingPlayer() {
 					@Override
 					public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {
-						return new AtaxxMove(getFromRow(), getFromCol(), getToRow(), getToCol(), p);
+						return new AdvancedTTTMove(getFromRow(), getFromCol(), getToRow(), getToCol(), p);
 					}
 				};
 				player.setMove(currentSource.getFirst(), currentSource.getSecond(), row, col);

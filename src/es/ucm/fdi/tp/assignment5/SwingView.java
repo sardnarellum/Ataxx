@@ -8,9 +8,9 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -27,7 +27,7 @@ import javax.swing.border.Border;
 import javax.swing.table.TableCellRenderer;
 
 import es.ucm.fdi.tp.assignment5.Main.PlayerMode;
-import es.ucm.fdi.tp.assignment5.SwingCommon;
+import es.ucm.fdi.tp.basecode.bgame.Utils;
 import es.ucm.fdi.tp.basecode.bgame.control.Controller;
 import es.ucm.fdi.tp.basecode.bgame.control.Player;
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
@@ -35,6 +35,7 @@ import es.ucm.fdi.tp.basecode.bgame.model.Game.State;
 import es.ucm.fdi.tp.basecode.bgame.model.GameObserver;
 import es.ucm.fdi.tp.basecode.bgame.model.Observable;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
+
 
 @SuppressWarnings("serial")
 public abstract class SwingView extends JFrame implements GameObserver {
@@ -302,19 +303,35 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	}
 
 	final protected void decideMakeManualMove(Player manualPlayer) {
-		ctrl.makeMove(manualPlayer);
+		try {
+			ctrl.makeMove(manualPlayer);
+		} catch (Exception e) {
+
+		}
 	}
 
 	private void decideMakeRndOrAutoMove() {
-		ctrl.makeMove(playerModes.get(turn) == PlayerMode.AI ? aiPlayer : randPlayer);
+		try {
+			ctrl.makeMove(playerModes.get(turn) == PlayerMode.AI ? aiPlayer : randPlayer);
+		} catch (Exception e) {
+
+		}
 	}
 
 	private void decideMakeAutomaticMove() {
-		ctrl.makeMove(aiPlayer);
+		try {
+			ctrl.makeMove(aiPlayer);
+		} catch (Exception e) {
+
+		}
 	}
 
 	private void decideMakeRandomMove() {
-		ctrl.makeMove(randPlayer);
+		try {
+			ctrl.makeMove(randPlayer);
+		} catch (Exception e) {
+
+		}
 	}
 
 	protected abstract void initBoardGUI();
@@ -397,13 +414,13 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		}
 		this.pieces = pieces;
 
-		Random r = new Random();
-
 		playerModesCB.removeAllItems();
 		playerColorsCB.removeAllItems();
+		
+		Iterator<Color> ci = Utils.colorsGenerator();
 
 		for (Piece p : pieces) {
-			setPieceColor(p, SwingCommon.createRandomColor(r));
+			setPieceColor(p, ci.next());
 			playerColorsCB.addItem(p.toString());
 
 			if (null == localPiece) {
@@ -428,7 +445,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	}
 
 	private void handleOnGameOver(State state, Piece winner) {
-		deActivateBoard();
+		setUIEnabled(false);
 		setExitRestartEnabled(true);
 		addMsg("GAME OVER");
 		printState(state, winner);
@@ -519,8 +536,8 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			deActivateBoard();
 		}
 	}
-	
-	private void setExitRestartEnabled(Boolean enabled){
+
+	private void setExitRestartEnabled(Boolean enabled) {
 		exitBtn.setEnabled(enabled);
 		restartBtn.setEnabled(enabled);
 	}
