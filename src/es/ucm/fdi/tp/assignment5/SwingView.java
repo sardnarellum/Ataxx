@@ -36,7 +36,6 @@ import es.ucm.fdi.tp.basecode.bgame.model.GameObserver;
 import es.ucm.fdi.tp.basecode.bgame.model.Observable;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
-
 @SuppressWarnings("serial")
 public abstract class SwingView extends JFrame implements GameObserver {
 
@@ -173,7 +172,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 					public void run() {
 						tmodel.setMode(p, m);
 						tmodel.refresh();
-						if (turn.equals(p)){
+						if (turn.equals(p)) {
 							decideMakeRndOrAutoMove();
 						}
 					}
@@ -381,9 +380,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
-				if (success) {
-					handleOnMoveEnd(board);
-				}
+				handleOnMoveEnd(board, success);
 			}
 		});
 	}
@@ -419,7 +416,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		playerModesCB.removeAllItems();
 		playerColorsCB.removeAllItems();
-		
+
 		Iterator<Color> ci = Utils.colorsGenerator();
 
 		for (Piece p : pieces) {
@@ -459,15 +456,17 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		setUIEnabled(false);
 	}
 
-	protected void handleOnMoveEnd(Board board) {
-		this.board = board;
+	protected void handleOnMoveEnd(Board board, boolean success) {
+		if (success) {
+			this.board = board;
 
-		for (Piece p : pieces) {
-			Integer c = board.getPieceCount(p);
-			tmodel.setScore(p, c);
+			for (Piece p : pieces) {
+				Integer c = board.getPieceCount(p);
+				tmodel.setScore(p, c);
+			}
+			tmodel.refresh();
+			redrawBoard();
 		}
-		tmodel.refresh();
-		redrawBoard();
 
 		if (playerModes.get(turn) == PlayerMode.MANUAL) {
 			setExitRestartEnabled(true);

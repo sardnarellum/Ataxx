@@ -3,7 +3,6 @@ package es.ucm.fdi.tp.assignment5.attt;
 import java.util.List;
 
 import es.ucm.fdi.tp.assignment5.RectBoardSwingView;
-import es.ucm.fdi.tp.assignment5.TwoStepSwingPlayer;
 import es.ucm.fdi.tp.basecode.attt.AdvancedTTTMove;
 import es.ucm.fdi.tp.basecode.bgame.control.Controller;
 import es.ucm.fdi.tp.basecode.bgame.control.Player;
@@ -27,24 +26,34 @@ public class AdvancedTTTSwingView extends RectBoardSwingView {
 	@Override
 	protected void handleMouseClick(int row, int col, int mouseBtn) {
 		if (1 == mouseBtn) {
-			if (null == currentSource) {
-				Piece p = getBoard().getPosition(row, col);
-				if (null == p) {
-					currentSource = new Pair<Integer, Integer>(row, col);
-					addMsg("Origin: (" + currentSource.getFirst() + "," + currentSource.getSecond() + ")");
-					addMsg("Click on a Destination cell");
-				}
-			} else {
-				addMsg("Destination: (" + row + "," + col + ")");
-				TwoStepSwingPlayer player = new TwoStepSwingPlayer() {
+			if (getBoard().getPieceCount(getTurn()) > 0) {
+				Player player = new Player() {
 					@Override
 					public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {
-						return new AdvancedTTTMove(getFromRow(), getFromCol(), getToRow(), getToCol(), p);
+						return new AdvancedTTTMove(row, col, row, col, p);
 					}
 				};
-				player.setMove(currentSource.getFirst(), currentSource.getSecond(), row, col);
-				currentSource = null;
 				decideMakeManualMove(player);
+			} else {
+				if (null == currentSource) {
+					Piece p = getBoard().getPosition(row, col);
+					if (getTurn().equals(p)) {
+						currentSource = new Pair<Integer, Integer>(row, col);
+						addMsg("Origin: (" + currentSource.getFirst() + "," + currentSource.getSecond() + ")");
+						addMsg("Click on a Destination cell");
+					}
+				} else {
+					addMsg("Destination: (" + row + "," + col + ")");
+					Player player = new Player() {
+						@Override
+						public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {
+							return new AdvancedTTTMove(currentSource.getFirst(), currentSource.getSecond(), row, col,
+									p);
+						}
+					};
+					decideMakeManualMove(player);
+					currentSource = null;
+				}
 			}
 		} else if (3 == mouseBtn) {
 			currentSource = null;
