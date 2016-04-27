@@ -1,4 +1,4 @@
-package assignment4.ataxx;
+package es.ucm.fdi.tp.assignment5;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import es.ucm.fdi.tp.basecode.attt.AdvancedTTTFactory;
+import es.ucm.fdi.tp.assignment5.ataxx.AtaxxFactoryExt;
+import es.ucm.fdi.tp.assignment5.attt.AdvancedTTTFactoryExt;
 import es.ucm.fdi.tp.basecode.bgame.control.ConsoleCtrl;
 import es.ucm.fdi.tp.basecode.bgame.control.ConsoleCtrlMVC;
 import es.ucm.fdi.tp.basecode.bgame.control.Controller;
@@ -22,8 +23,8 @@ import es.ucm.fdi.tp.basecode.bgame.model.AIAlgorithm;
 import es.ucm.fdi.tp.basecode.bgame.model.Game;
 import es.ucm.fdi.tp.basecode.bgame.model.GameError;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
-import es.ucm.fdi.tp.basecode.connectN.ConnectNFactory;
-import es.ucm.fdi.tp.basecode.ttt.TicTacToeFactory;
+import es.ucm.fdi.tp.assignment5.connectn.ConnectNFactoryExt;
+import es.ucm.fdi.tp.assignment5.ttt.TicTacToeFactoryExt;
 
 /**
  * This is the class with the main method for the board games application.
@@ -77,7 +78,8 @@ public class Main {
 	 * Juegos disponibles.
 	 */
 	enum GameInfo {
-		ATAXX("ax", "Ataxx"), CONNECTN("cn", "ConnectN"), TicTacToe("ttt", "Tic-Tac-Toe"), AdvancedTicTacToe("attt", "Advanced Tic-Tac-Toe");
+		ATAXX("ax", "Ataxx"), CONNECTN("cn", "ConnectN"), TicTacToe("ttt", "Tic-Tac-Toe"), AdvancedTicTacToe("attt",
+				"Advanced Tic-Tac-Toe");
 
 		private String id;
 		private String desc;
@@ -144,7 +146,7 @@ public class Main {
 	 * <p>
 	 * Vista por defecto.
 	 */
-	final private static ViewInfo DEFAULT_VIEW = ViewInfo.CONSOLE;
+	final private static ViewInfo DEFAULT_VIEW = ViewInfo.WINDOW;
 
 	/**
 	 * Default player mode to use.
@@ -238,15 +240,15 @@ public class Main {
 	 * utiliza, por lo que siempre es {@code null}.
 	 */
 	private static AIAlgorithm aiPlayerAlg;
-	
+
 	/**
 	 * Number of quadrant of obstacles to be generated.
 	 */
 	private static int qObstacles = 0;
 
 	/**
-	 * Processes the command-line arguments and modify the fields of this
-	 * class with corresponding values. E.g., the factory, the pieces, etc.
+	 * Processes the command-line arguments and modify the fields of this class
+	 * with corresponding values. E.g., the factory, the pieces, etc.
 	 *
 	 * <p>
 	 * Procesa la linea de ordenes del programa y crea los objetos necesarios
@@ -515,42 +517,42 @@ public class Main {
 		String gameVal = line.getOptionValue("g", DEFAULT_GAME.getId());
 		GameInfo selectedGame = null;
 
-		for( GameInfo g : GameInfo.values() ) {
-			if ( g.getId().equals(gameVal) ) {
+		for (GameInfo g : GameInfo.values()) {
+			if (g.getId().equals(gameVal)) {
 				selectedGame = g;
 				break;
 			}
 		}
 
-		if ( selectedGame == null ) {
+		if (selectedGame == null) {
 			throw new ParseException("Uknown game '" + gameVal + "'");
 		}
-	
-		switch ( selectedGame ) {
+
+		switch (selectedGame) {
 		case AdvancedTicTacToe:
-			gameFactory = new AdvancedTTTFactory();
+			gameFactory = new AdvancedTTTFactoryExt();
 			break;
 		case CONNECTN:
 			if (dimRows != null && dimCols != null && dimRows == dimCols) {
-				gameFactory = new ConnectNFactory(dimRows);
+				gameFactory = new ConnectNFactoryExt(dimRows);
 			} else {
-				gameFactory = new ConnectNFactory();
+				gameFactory = new ConnectNFactoryExt();
 			}
 			break;
 		case TicTacToe:
-			gameFactory = new TicTacToeFactory();
+			gameFactory = new TicTacToeFactoryExt();
 			break;
 		case ATAXX:
 			if (dimRows != null && dimCols != null && dimRows == dimCols) {
-				gameFactory = new AtaxxFactory(qObstacles, dimRows);
+				gameFactory = new AtaxxFactoryExt(qObstacles, dimRows);
 			} else {
-				gameFactory = new AtaxxFactory(qObstacles);
+				gameFactory = new AtaxxFactoryExt(qObstacles);
 			}
 			break;
 		default:
 			throw new UnsupportedOperationException("Something went wrong! This program point should be unreachable!");
 		}
-	
+
 	}
 
 	/**
@@ -642,11 +644,11 @@ public class Main {
 
 	/**
 	 * Builds the obstacles (-o or --obstacles) CLI option.
+	 * 
 	 * @return CLI {@link Option} for the obstacles option.
 	 */
-	private static Option constructObstaclesOption() {	
-		Option opt = new Option("o", "obstacles", true,
-				"Generate obstacles for each quadrant of the table.");
+	private static Option constructObstaclesOption() {
+		Option opt = new Option("o", "obstacles", true, "Generate obstacles for each quadrant of the table.");
 		opt.setArgName("qty in a quadrant");
 		return opt;
 	}
@@ -654,6 +656,7 @@ public class Main {
 	/**
 	 * Parses the obstacles option (-o or --obstacles). It sets the value of
 	 * {@link qObstacles}.
+	 * 
 	 * @param line
 	 * @throws ParseException
 	 */
@@ -662,7 +665,7 @@ public class Main {
 		if (null != oVal) {
 			try {
 				qObstacles = Integer.parseInt(oVal);
-			} catch (NumberFormatException e){
+			} catch (NumberFormatException e) {
 				throw new ParseException("Invalid obstacles parameter: " + oVal);
 			}
 		}
@@ -749,8 +752,20 @@ public class Main {
 			gameFactory.createConsoleView(g, c);
 			break;
 		case WINDOW:
-			throw new UnsupportedOperationException(
-					"Swing " + (multiviews ? "Multiviews" : "Views") + " are not supported yet! ");
+			c = new Controller(g, pieces);
+			if (multiviews) { // multi-window
+				for (Piece p : pieces) {
+					gameFactory.createSwingView(g, c, p,
+							gameFactory.createRandomPlayer(),
+							gameFactory.createAIPlayer(aiPlayerAlg));
+				}
+			} else { // single-window
+				gameFactory.createSwingView(g, c, null,
+						gameFactory.createRandomPlayer(),
+						gameFactory.createAIPlayer(aiPlayerAlg));
+			}
+
+			break;
 		default:
 			throw new UnsupportedOperationException("Something went wrong! This program point should be unreachable!");
 		}

@@ -1,4 +1,4 @@
-package assignment4.ataxx;
+package es.ucm.fdi.tp.assignment4.ataxx;
 
 import java.util.Iterator;
 

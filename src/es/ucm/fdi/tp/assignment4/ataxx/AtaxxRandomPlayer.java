@@ -1,4 +1,4 @@
-package assignment4.ataxx;
+package es.ucm.fdi.tp.assignment4.ataxx;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 public class AtaxxRandomPlayer extends Player {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	@Override
 	public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {
 		if (!AtaxxCommon.playerCanMove(board, p)) {
@@ -28,19 +28,21 @@ public class AtaxxRandomPlayer extends Player {
 		int currRow = Utils.randomInt(rows);
 		int currCol = Utils.randomInt(cols);
 
-		// start at (currRow,currColl) and look for the first position matching with the piece for origin.
+		// start at (currRow,currColl) and look for the first position matching
+		// with the piece for origin.
 		while (true) {
-			if (board.getPosition(currRow, currCol) == p) {
-				List<Pair<Integer, Integer>> l = AtaxxCommon
-						.emptyPlacesInRange(board, currRow, currCol);
-				
-				int emptyPlaces = l.size(); 
-				
-				if (emptyPlaces > 0){					
-					int index = emptyPlaces > 1 ? Utils.randomInt(emptyPlaces - 1) : 0;
-					Pair<Integer, Integer> coords = l.get(index);
-					return createMove(currRow, currCol,	coords.getFirst(),
-							coords.getSecond(), p);
+			Piece q = board.getPosition(currRow, currCol);
+			if (null != q) {
+				if (board.getPosition(currRow, currCol).equals(p)) {
+					List<Pair<Integer, Integer>> l = AtaxxCommon.emptyPlacesInRange(board, currRow, currCol);
+
+					int emptyPlaces = l.size();
+
+					if (emptyPlaces > 0) {
+						int index = emptyPlaces > 1 ? Utils.randomInt(emptyPlaces - 1) : 0;
+						Pair<Integer, Integer> coords = l.get(index);
+						return createMove(currRow, currCol, coords.getFirst(), coords.getSecond(), p);
+					}
 				}
 			}
 			currCol = (currCol + 1) % cols;
@@ -50,9 +52,8 @@ public class AtaxxRandomPlayer extends Player {
 		}
 	}
 
-	private GameMove createMove(int currRowF, int currColF,
-			int currRowT, int currColT, Piece p) {
-		return new AtaxxMove(currRowF, currColF, currRowT, currColT, p); // dummy arguments
+	private GameMove createMove(int currRowF, int currColF, int currRowT, int currColT, Piece p) {
+		return new AtaxxMove(currRowF, currColF, currRowT, currColT, p);
 	}
 
 }

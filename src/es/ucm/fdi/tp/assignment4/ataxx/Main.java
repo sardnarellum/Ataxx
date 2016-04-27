@@ -1,4 +1,4 @@
-package es.ucm.fdi.tp.basecode;
+package es.ucm.fdi.tp.assignment4.ataxx;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,15 +30,14 @@ import es.ucm.fdi.tp.basecode.ttt.TicTacToeFactory;
  * 
  * It uses the Commons-CLI library for parsing command-line arguments: the game
  * to play, the players list, etc.. More information is available at
- * the <a href="https://commons.apache.org/proper/commons-cli/>commons-cli</a>
- * page
+ * {@link https://commons.apache.org/proper/commons-cli/}
  * 
  * <p>
  * Esta es la clase con el metodo main de inicio del programa. Se utiliza la
  * libreria Commons-CLI para leer argumentos de la linea de ordenes: el juego al
  * que se quiere jugar y la lista de jugadores. Puedes encontrar mas información
- * sobre esta libreria en la pagina de
- * <a href="https://commons.apache.org/proper/commons-cli/>commons-cli</a>
+ * sobre esta libreria en {@link https://commons.apache.org/proper/commons-cli/}
+ * .
  */
 public class Main {
 
@@ -48,8 +47,7 @@ public class Main {
 	 * Vistas disponibles.
 	 */
 	enum ViewInfo {
-		WINDOW("window", "Swing"),
-		CONSOLE("console", "Console");
+		WINDOW("window", "Swing"), CONSOLE("console", "Console");
 
 		private String id;
 		private String desc;
@@ -79,9 +77,7 @@ public class Main {
 	 * Juegos disponibles.
 	 */
 	enum GameInfo {
-		CONNECT_N("cn", "ConnectN"),
-		TIC_TAC_TOE("ttt", "Tic-Tac-Toe"),
-		ADVANCED_TIC_TAC_TOE("attt", "Advanced Tic-Tac-Toe");
+		ATAXX("ax", "Ataxx"), CONNECTN("cn", "ConnectN"), TicTacToe("ttt", "Tic-Tac-Toe"), AdvancedTicTacToe("attt", "Advanced Tic-Tac-Toe");
 
 		private String id;
 		private String desc;
@@ -141,7 +137,7 @@ public class Main {
 	 * <p>
 	 * Juego por defecto.
 	 */
-	final private static GameInfo DEFAULT_GAME = GameInfo.CONNECT_N;
+	final private static GameInfo DEFAULT_GAME = GameInfo.CONNECTN;
 
 	/**
 	 * default view to use.
@@ -181,12 +177,12 @@ public class Main {
 	private static List<Piece> pieces;
 
 	/**
-	 * A list of player modes. The i-th mode corresponds to the i-th piece in
-	 * the list {@link #pieces}. They correspond to what is provided in the -p
+	 * A list of players. The i-th player corresponds to the i-th piece in the
+	 * list {@link #pieces}. They correspond to what is provided in the -p
 	 * option (or using the default value {@link #DEFAULT_PLAYERMODE}).
 	 * 
 	 * <p>
-	 * Lista de modos de juego. El modo i-esimo corresponde con la ficha i-esima
+	 * Lista de jugadores. El jugador i-esimo corresponde con la ficha i-esima
 	 * de la lista {@link #pieces}. Esta lista contiene lo que se proporciona en
 	 * la opcion -p (o el valor por defecto {@link #DEFAULT_PLAYERMODE}).
 	 */
@@ -242,6 +238,11 @@ public class Main {
 	 * utiliza, por lo que siempre es {@code null}.
 	 */
 	private static AIAlgorithm aiPlayerAlg;
+	
+	/**
+	 * Number of quadrant of obstacles to be generated.
+	 */
+	private static int qObstacles = 0;
 
 	/**
 	 * Processes the command-line arguments and modify the fields of this
@@ -267,12 +268,14 @@ public class Main {
 		//
 		Options cmdLineOptions = new Options();
 		cmdLineOptions.addOption(constructHelpOption()); // -h or --help
+		cmdLineOptions.addOption(constructObstaclesOption()); // -o or
 		cmdLineOptions.addOption(constructGameOption()); // -g or --game
 		cmdLineOptions.addOption(constructViewOption()); // -v or --view
-		cmdLineOptions.addOption(constructMultiViewOption()); // -m or
+		cmdLineOptions.addOption(constructMlutiViewOption()); // -m or
 																// --multiviews
 		cmdLineOptions.addOption(constructPlayersOption()); // -p or --players
 		cmdLineOptions.addOption(constructDimensionOption()); // -d or --dim
+																// --obstacles
 
 		// parse the command line as provided in args
 		//
@@ -280,7 +283,8 @@ public class Main {
 		try {
 			CommandLine line = parser.parse(cmdLineOptions, args);
 			parseHelpOption(line, cmdLineOptions);
-			parseDimensionOption(line);
+			parseDimOptionn(line);
+			parseObstaclesOptions(line);
 			parseGameOption(line);
 			parseViewOption(line);
 			parseMultiViewOption(line);
@@ -311,10 +315,10 @@ public class Main {
 	 * <p>
 	 * Construye la opcion CLI -m.
 	 * 
-	 * @return CLI {@link {@link Option} for the multiview option.
+	 * @return CLI {@link Option} for the multiview option.
 	 */
 
-	private static Option constructMultiViewOption() {
+	private static Option constructMlutiViewOption() {
 		return new Option("m", "multiviews", false,
 				"Create a separate view for each player (valid only when using the " + ViewInfo.WINDOW + " view)");
 	}
@@ -489,13 +493,13 @@ public class Main {
 	/**
 	 * Parses the game option (-g or --game). It sets the value of
 	 * {@link #gameFactory} accordingly. Usually it requires that
-	 * {@link #parseDimensionOption(CommandLine)} has been called already to parse
+	 * {@link #parseDimOptionn(CommandLine)} has been called already to parse
 	 * the dimension option.
 	 * 
 	 * <p>
 	 * Extrae la opcion de juego (-g). Asigna el valor del atributo
 	 * {@link #gameFactory}. Normalmente necesita que se haya llamado antes a
-	 * {@link #parseDimensionOption(CommandLine)} para extraer la dimension del
+	 * {@link #parseDimOptionn(CommandLine)} para extraer la dimension del
 	 * tablero.
 	 * 
 	 * @param line
@@ -511,30 +515,37 @@ public class Main {
 		String gameVal = line.getOptionValue("g", DEFAULT_GAME.getId());
 		GameInfo selectedGame = null;
 
-		for (GameInfo g : GameInfo.values()) {
-			if (g.getId().equals(gameVal)) {
+		for( GameInfo g : GameInfo.values() ) {
+			if ( g.getId().equals(gameVal) ) {
 				selectedGame = g;
 				break;
 			}
 		}
 
-		if (selectedGame == null) {
+		if ( selectedGame == null ) {
 			throw new ParseException("Uknown game '" + gameVal + "'");
 		}
 	
 		switch ( selectedGame ) {
-		case ADVANCED_TIC_TAC_TOE:
+		case AdvancedTicTacToe:
 			gameFactory = new AdvancedTTTFactory();
 			break;
-		case CONNECT_N:
+		case CONNECTN:
 			if (dimRows != null && dimCols != null && dimRows == dimCols) {
 				gameFactory = new ConnectNFactory(dimRows);
 			} else {
 				gameFactory = new ConnectNFactory();
 			}
 			break;
-		case TIC_TAC_TOE:
+		case TicTacToe:
 			gameFactory = new TicTacToeFactory();
+			break;
+		case ATAXX:
+			if (dimRows != null && dimCols != null && dimRows == dimCols) {
+				gameFactory = new AtaxxFactory(qObstacles, dimRows);
+			} else {
+				gameFactory = new AtaxxFactory(qObstacles);
+			}
 			break;
 		default:
 			throw new UnsupportedOperationException("Something went wrong! This program point should be unreachable!");
@@ -574,7 +585,7 @@ public class Main {
 	 *             <p>
 	 *             Si se proporciona un valor invalido.
 	 */
-	private static void parseDimensionOption(CommandLine line) throws ParseException {
+	private static void parseDimOptionn(CommandLine line) throws ParseException {
 		String dimVal = line.getOptionValue("d");
 		if (dimVal != null) {
 			try {
@@ -626,6 +637,34 @@ public class Main {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp(Main.class.getCanonicalName(), cmdLineOptions, true);
 			System.exit(0);
+		}
+	}
+
+	/**
+	 * Builds the obstacles (-o or --obstacles) CLI option.
+	 * @return CLI {@link Option} for the obstacles option.
+	 */
+	private static Option constructObstaclesOption() {	
+		Option opt = new Option("o", "obstacles", true,
+				"Generate obstacles for each quadrant of the table.");
+		opt.setArgName("qty in a quadrant");
+		return opt;
+	}
+
+	/**
+	 * Parses the obstacles option (-o or --obstacles). It sets the value of
+	 * {@link qObstacles}.
+	 * @param line
+	 * @throws ParseException
+	 */
+	private static void parseObstaclesOptions(CommandLine line) throws ParseException {
+		String oVal = line.getOptionValue("o");
+		if (null != oVal) {
+			try {
+				qObstacles = Integer.parseInt(oVal);
+			} catch (NumberFormatException e){
+				throw new ParseException("Invalid obstacles parameter: " + oVal);
+			}
 		}
 	}
 

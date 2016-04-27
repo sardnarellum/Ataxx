@@ -1,4 +1,4 @@
-package assignment4.ataxx;
+package es.ucm.fdi.tp.assignment4.ataxx;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +19,10 @@ import es.ucm.fdi.tp.basecode.bgame.views.GenericConsoleView;
 
 public class AtaxxFactory implements GameFactory {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	protected final int dim;
 	protected final int qObs;
 	

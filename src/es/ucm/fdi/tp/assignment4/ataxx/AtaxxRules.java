@@ -1,4 +1,4 @@
-package assignment4.ataxx;
+package es.ucm.fdi.tp.assignment4.ataxx;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,9 @@ public class AtaxxRules implements GameRules {
 			new Pair<State, Piece>(State.Draw, null);
 	
 	private final int dim;
-	private int qObs;
+	private final int qObs;
+
+	private Piece obstPiece;
 	
 	/**
 	 * Initializes AtaxxRuless class with the dimension of the row and columns of Ataxx table.
@@ -86,16 +88,21 @@ public class AtaxxRules implements GameRules {
 			board.setPosition(dim - 1, dim / 2, pieces.get(3));			
 		}
 		
-		while (qObs > 0){
+		if (qObs > 0){
+			obstPiece = getUniquePiece(pieces);
+		}
+		
+		int q = qObs;		
+		while (q > 0){
 			ArrayList<Pair<Integer, Integer>> l = 
 					AtaxxCommon.emptyPlacesQuadrant(board);
 			if (l.size() == 0){
-				qObs = 0;
+				q = 0;
 			} else {
 				Pair<Integer, Integer> p = l.get(Utils.randomInt(l.size()));
 				AtaxxCommon.setInAllQuadrants(p.getFirst(), p.getSecond(),
-						board, new Piece("*"));
-				--qObs;
+						board, obstPiece);
+				--q;
 			}
 		}
 		
@@ -104,7 +111,7 @@ public class AtaxxRules implements GameRules {
 
 	@Override
 	public Piece initialPlayer(Board board, List<Piece> pieces) {
-		return pieces.get(0);
+		return nextPlayer(board, pieces, pieces.get(pieces.size()-1));
 	}
 
 	/**
@@ -152,6 +159,13 @@ public class AtaxxRules implements GameRules {
 				return new Pair<State, Piece>(State.Won, winner);
 			}
 		}
+		else {
+			Piece winner = AtaxxCommon.uniqueWinner(board, pieces);
+			
+			if (null != winner){
+				return new Pair<State, Piece>(State.Won, winner);
+			}
+		}
 		
 		return gameInPlayResult;
 	}
@@ -160,18 +174,18 @@ public class AtaxxRules implements GameRules {
 	public Piece nextPlayer(Board board, List<Piece> playersPieces, Piece turn) {
 		List<Piece> pieces = playersPieces;
 		int i = pieces.indexOf(turn);
+		int c =	pieces.size();
 		Piece p = pieces.get((i + 1) % pieces.size());
 		
 		while (!AtaxxCommon.playerCanMove(board, p)){
-			p = pieces.get((++i + 1) % pieces.size());				
+			p = pieces.get((++i + 1) % pieces.size());
+			
+			if (--c <= 0){
+				return null;
+			}
 		}
 		
 		return p;
-	}
-
-	@Override
-	public double evaluate(Board board, List<Piece> pieces, Piece turn) {
-		return 0;
 	}
 
 	@Override
@@ -179,4 +193,22 @@ public class AtaxxRules implements GameRules {
 		return null;
 	}
 
+	@Override
+	public double evaluate(Board board, List<Piece> pieces, Piece turn, Piece p) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+
+	private Piece getUniquePiece(List<Piece> pl) {
+		int i = 0;
+		
+		while (true){
+			Piece p = new Piece("*#" + i++);
+			
+			if (!pl.contains(p)){
+				return p;
+			}
+		}
+	}
 }
