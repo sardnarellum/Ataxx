@@ -36,9 +36,9 @@ import es.ucm.fdi.tp.assignment5.ttt.TicTacToeFactoryExt;
  * <p>
  * Esta es la clase con el metodo main de inicio del programa. Se utiliza la
  * libreria Commons-CLI para leer argumentos de la linea de ordenes: el juego al
- * que se quiere jugar y la lista de jugadores. Puedes encontrar mas información
- * sobre esta libreria en {@link https://commons.apache.org/proper/commons-cli/}
- * .
+ * que se quiere jugar y la lista de jugadores. Puedes encontrar mas
+ * información sobre esta libreria en {@link https
+ * ://commons.apache.org/proper/commons-cli/} .
  */
 public class Main {
 
@@ -78,7 +78,8 @@ public class Main {
 	 * Juegos disponibles.
 	 */
 	enum GameInfo {
-		ATAXX("ax", "Ataxx"), CONNECTN("cn", "ConnectN"), TicTacToe("ttt", "Tic-Tac-Toe"), AdvancedTicTacToe("attt",
+		ATAXX("ax", "Ataxx"), CONNECTN("cn", "ConnectN"), TicTacToe("ttt",
+				"Tic-Tac-Toe"), AdvancedTicTacToe("attt",
 				"Advanced Tic-Tac-Toe");
 
 		private String id;
@@ -192,6 +193,16 @@ public class Main {
 	final private static ApplicationMode DEFAULT_APPMODE = ApplicationMode.NORMAL;
 
 	/**
+	 * Default port of the game server.
+	 */
+	final private static int DEFAULT_PORT = 2000;
+
+	/**
+	 * Default network address of the game server.
+	 */
+	final private static String DEFAULT_HOST = "localhost";
+
+	/**
 	 * This field includes a game factory that is constructed after parsing the
 	 * command-line arguments. Depending on the game selected with the -g option
 	 * (by default {@link #DEFAULT_GAME}).
@@ -287,6 +298,10 @@ public class Main {
 	 */
 	private static int qObstacles = 0;
 
+	private static int serverPort = DEFAULT_PORT;
+
+	private static String serverHost = DEFAULT_HOST;
+
 	/**
 	 * Processes the command-line arguments and modify the fields of this class
 	 * with corresponding values. E.g., the factory, the pieces, etc.
@@ -310,7 +325,11 @@ public class Main {
 		// define the valid command line options
 		//
 		Options cmdLineOptions = new Options();
-		cmdLineOptions.addOption(constructAppModeOption());
+		cmdLineOptions.addOption(constructAppModeOption()); // -am or --app-mode
+		cmdLineOptions.addOption(constructServerPortOption()); // -sp or
+																// --server-port
+		cmdLineOptions.addOption(constructServerHostOption()); // -sh or
+																// --server-host
 		cmdLineOptions.addOption(constructHelpOption()); // -h or --help
 		cmdLineOptions.addOption(constructObstaclesOption()); // -o or
 																// --obstacles
@@ -327,6 +346,8 @@ public class Main {
 		try {
 			CommandLine line = parser.parse(cmdLineOptions, args);
 			parseAppModeOption(line);
+			parseServerPortOption(line);
+			parseServerHostOption(line);
 			parseHelpOption(line, cmdLineOptions);
 			parseDimOptionn(line);
 			parseObstaclesOptions(line);
@@ -365,6 +386,23 @@ public class Main {
 		return opt;
 	}
 
+	private static Option constructServerPortOption() {
+		Option opt = new Option(
+				"sp",
+				"server-port",
+				true,
+				"Indicates the port which the server is listening on, the default value is 2000.");
+		opt.setArgName("port number");
+		return opt;
+	}
+
+	private static Option constructServerHostOption() {
+		Option opt = new Option("sh", "server-host", true,
+				"Indicates the gameserver's address, the default value is localhost.");
+		opt.setArgName("IP or machine name");
+		return opt;
+	}
+
 	/**
 	 * Builds the multiview (-m or --multiviews) CLI option.
 	 * 
@@ -376,7 +414,8 @@ public class Main {
 
 	private static Option constructMlutiViewOption() {
 		return new Option("m", "multiviews", false,
-				"Create a separate view for each player (valid only when using the " + ViewInfo.WINDOW + " view)");
+				"Create a separate view for each player (valid only when using the "
+						+ ViewInfo.WINDOW + " view)");
 	}
 
 	/**
@@ -455,13 +494,32 @@ public class Main {
 		for (PlayerMode i : PlayerMode.values()) {
 			optionInfo += i.getId() + " [for " + i.getDesc() + "] ";
 		}
-		optionInfo += "). If B is not given, the default mode '" + DEFAULT_PLAYERMODE.getId()
+		optionInfo += "). If B is not given, the default mode '"
+				+ DEFAULT_PLAYERMODE.getId()
 				+ "' is used. If this option is not given a default list of pieces from the corresponding game is used, each assigmed the mode '"
 				+ DEFAULT_PLAYERMODE.getId() + "'.";
 
 		Option opt = new Option("p", "players", true, optionInfo);
 		opt.setArgName("list of players");
 		return opt;
+	}
+
+	private static void parseServerHostOption(CommandLine line) {
+		serverHost = line.getOptionValue("sh", DEFAULT_HOST);
+	}
+
+	private static void parseServerPortOption(CommandLine line)
+			throws ParseException {
+		String portVal = line.getOptionValue("sp");
+
+		if (portVal != null) {
+			try {
+				serverPort = Integer.parseInt(portVal);
+			} catch (NumberFormatException e) {
+				throw new ParseException("Invalid server-port parameter: "
+						+ portVal);
+			}
+		}
 	}
 
 	/**
@@ -481,7 +539,8 @@ public class Main {
 	 *             Si se proporciona un valor invalido (@see
 	 *             {@link #constructPlayersOption()}).
 	 */
-	private static void parsePlayersOptions(CommandLine line) throws ParseException {
+	private static void parsePlayersOptions(CommandLine line)
+			throws ParseException {
 
 		String playersVal = line.getOptionValue("p");
 
@@ -515,10 +574,12 @@ public class Main {
 					if (selectedMode != null) {
 						playerModes.add(selectedMode);
 					} else {
-						throw new ParseException("Invalid player mode in '" + player + "'");
+						throw new ParseException("Invalid player mode in '"
+								+ player + "'");
 					}
 				} else {
-					throw new ParseException("Invalid player information '" + player + "'");
+					throw new ParseException("Invalid player information '"
+							+ player + "'");
 				}
 			}
 		}
@@ -604,7 +665,8 @@ public class Main {
 			}
 			break;
 		default:
-			throw new UnsupportedOperationException("Something went wrong! This program point should be unreachable!");
+			throw new UnsupportedOperationException(
+					"Something went wrong! This program point should be unreachable!");
 		}
 
 	}
@@ -620,11 +682,15 @@ public class Main {
 	 *         Objeto {@link Option} de esta opcion.
 	 */
 	private static Option constructDimensionOption() {
-		return new Option("d", "dim", true,
+		return new Option(
+				"d",
+				"dim",
+				true,
 				"The board size (if allowed by the selected game). It must has the form ROWSxCOLS.");
 	}
 
-	private static void parseAppModeOption(CommandLine line) throws ParseException {
+	private static void parseAppModeOption(CommandLine line)
+			throws ParseException {
 		String appModeVal = line.getOptionValue("am", DEFAULT_APPMODE.getId());
 		ApplicationMode selectedMode = null;
 
@@ -636,7 +702,8 @@ public class Main {
 		}
 
 		if (selectedMode == null) {
-			throw new ParseException("Uknown application mode '" + appModeVal + "'");
+			throw new ParseException("Uknown application mode '" + appModeVal
+					+ "'");
 		}
 
 		applicationMode = selectedMode;
@@ -709,7 +776,8 @@ public class Main {
 	private static void parseHelpOption(CommandLine line, Options cmdLineOptions) {
 		if (line.hasOption("h")) {
 			HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp(Main.class.getCanonicalName(), cmdLineOptions, true);
+			formatter.printHelp(Main.class.getCanonicalName(), cmdLineOptions,
+					true);
 			System.exit(0);
 		}
 	}
@@ -720,7 +788,8 @@ public class Main {
 	 * @return CLI {@link Option} for the obstacles option.
 	 */
 	private static Option constructObstaclesOption() {
-		Option opt = new Option("o", "obstacles", true, "Generate obstacles for each quadrant of the table.");
+		Option opt = new Option("o", "obstacles", true,
+				"Generate obstacles for each quadrant of the table.");
 		opt.setArgName("qty in a quadrant");
 		return opt;
 	}
@@ -732,7 +801,8 @@ public class Main {
 	 * @param line
 	 * @throws ParseException
 	 */
-	private static void parseObstaclesOptions(CommandLine line) throws ParseException {
+	private static void parseObstaclesOptions(CommandLine line)
+			throws ParseException {
 		String oVal = line.getOptionValue("o");
 		if (null != oVal) {
 			try {
@@ -782,7 +852,8 @@ public class Main {
 			throw new UnsupportedOperationException(
 					"Swing Views are not supported in startGameNoMVC!! Please use startGameMVC instead.");
 		default:
-			throw new UnsupportedOperationException("Something went wrong! This program point should be unreachable!");
+			throw new UnsupportedOperationException(
+					"Something went wrong! This program point should be unreachable!");
 		}
 
 		c.start();
@@ -827,30 +898,41 @@ public class Main {
 			c = new Controller(g, pieces);
 			if (multiviews) { // multi-window
 				for (Piece p : pieces) {
-					gameFactory.createSwingView(g, c, p, gameFactory.createRandomPlayer(),
+					gameFactory.createSwingView(g, c, p,
+							gameFactory.createRandomPlayer(),
 							gameFactory.createAIPlayer(aiPlayerAlg));
 				}
 			} else { // single-window
-				gameFactory.createSwingView(g, c, null, gameFactory.createRandomPlayer(),
+				gameFactory.createSwingView(g, c, null,
+						gameFactory.createRandomPlayer(),
 						gameFactory.createAIPlayer(aiPlayerAlg));
 			}
 
 			break;
 		default:
-			throw new UnsupportedOperationException("Something went wrong! This program point should be unreachable!");
+			throw new UnsupportedOperationException(
+					"Something went wrong! This program point should be unreachable!");
 		}
 
 		c.start();
 	}
 
 	public static void startClient() {
-		// TODO starting client
-		throw new UnsupportedOperationException("Client mode is not supported.");
+		try {
+			GameClient c = new GameClient(serverHost, serverPort);
+			gameFactory = c.getGameFactory();
+			gameFactory.createSwingView(c, c, c.getPlayerPiece(),
+					gameFactory.createRandomPlayer(),
+					gameFactory.createAIPlayer(aiPlayerAlg));
+		} catch (Exception e) {
+			System.err
+					.println("An unexpected error occured when tried to start the client.");
+		}
 	}
 
 	public static void startServer() {
-		// TODO starting server
-		throw new UnsupportedOperationException("Server mode is not supported.");
+		GameServer c = new GameServer(gameFactory, pieces, serverPort);
+		c.start();
 	}
 
 	/**
