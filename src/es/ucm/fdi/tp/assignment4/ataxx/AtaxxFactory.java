@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import es.ucm.fdi.tp.basecode.bgame.control.AIPlayer;
 import es.ucm.fdi.tp.basecode.bgame.control.ConsolePlayer;
 import es.ucm.fdi.tp.basecode.bgame.control.Controller;
 import es.ucm.fdi.tp.basecode.bgame.control.DummyAIPlayer;
@@ -59,6 +60,9 @@ public class AtaxxFactory implements GameFactory {
 
 	@Override
 	public Player createAIPlayer(AIAlgorithm alg) {
+		if (null != alg){
+			return new AIPlayer(alg);
+		}
 		return new DummyAIPlayer(createRandomPlayer(), 1000);
 	}
 

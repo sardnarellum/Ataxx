@@ -11,6 +11,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -18,15 +21,21 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.TableCellRenderer;
 
 import es.ucm.fdi.tp.assignment5.Main.PlayerMode;
+import es.ucm.fdi.tp.assignment6.LogArea;
 import es.ucm.fdi.tp.basecode.bgame.Utils;
 import es.ucm.fdi.tp.basecode.bgame.control.Controller;
 import es.ucm.fdi.tp.basecode.bgame.control.Player;
@@ -48,7 +57,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	private List<Piece> pieces;
 	private Map<Piece, Color> pieceColors;
 	private Map<Piece, PlayerMode> playerModes;
-	private JTextArea messages;
+	private LogArea messages;
 	private JComboBox<String> playerColorsCB;
 	private JComboBox<String> playerModesCB;
 	private PlayerTableModel tmodel;
@@ -56,19 +65,22 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	private JButton automaticBtn;
 	private JButton exitBtn;
 	private JButton restartBtn;
+	private int timeOut;
 
-	public SwingView(Observable<GameObserver> g, Controller c, Piece lp, Player randPlayer, Player aiPlayer) {
+	public SwingView(Observable<GameObserver> g, Controller c, Piece lp,
+			Player randPlayer, Player aiPlayer) {
 		super();
 		ctrl = c;
 		localPiece = lp;
 		playerModes = new HashMap<Piece, PlayerMode>();
 		this.randPlayer = randPlayer;
 		this.aiPlayer = aiPlayer;
+		this.timeOut = 5;
 		initGUI();
 	}
 
 	private void initGUI() {
-		messages = new JTextArea();
+		messages = new LogArea();
 		messages.setEditable(false);
 		messages.setLineWrap(true);
 		messages.setWrapStyleWord(true);
@@ -77,8 +89,10 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		JPanel statusMessages = new JPanel();
 		statusMessages.setLayout(new BorderLayout());
-		statusMessages.setBorder(BorderFactory.createTitledBorder(b, "Status Messages"));
-		JScrollPane messagePane = new JScrollPane(messages, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+		statusMessages.setBorder(BorderFactory.createTitledBorder(b,
+				"Status Messages"));
+		JScrollPane messagePane = new JScrollPane(messages,
+				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		statusMessages.setPreferredSize(new Dimension(200, 500));
 		// messagePane.setPreferredSize(new Dimension(300, 300));
@@ -87,7 +101,8 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		tmodel = new PlayerTableModel();
 		JTable playerInfoTable = new JTable(tmodel) {
 			@Override
-			public Component prepareRenderer(TableCellRenderer renderer, int row, int col) {
+			public Component prepareRenderer(TableCellRenderer renderer,
+					int row, int col) {
 				Component comp = super.prepareRenderer(renderer, row, col);
 				Color c = pieceColors.get(pieces.get(row));
 				comp.setBackground(pieceColors.get(pieces.get(row)));
@@ -103,7 +118,8 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		JPanel playerInfo = new JPanel();
 		playerInfo.setLayout(new BorderLayout());
-		playerInfo.setBorder(BorderFactory.createTitledBorder(b, "Player Information"));
+		playerInfo.setBorder(BorderFactory.createTitledBorder(b,
+				"Player Information"));
 		playerInfo.add(new JScrollPane(playerInfoTable), BorderLayout.CENTER);
 		playerInfoTable.setFillsViewportHeight(true);
 
@@ -122,7 +138,8 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					Piece p = pieces.get(playerColorsCB.getSelectedIndex());
-					ColorChooser c = new ColorChooser(new JFrame(), "Choose Line Color", pieceColors.get(p));
+					ColorChooser c = new ColorChooser(new JFrame(),
+							"Choose Line Color", pieceColors.get(p));
 					if (c.getColor() != null) {
 						pieceColors.put(p, c.getColor());
 						SwingUtilities.invokeLater(new Runnable() {
@@ -163,7 +180,8 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				final Piece p = localPiece == null ? pieces.get(playerModesCB.getSelectedIndex()) : localPiece;
+				final Piece p = localPiece == null ? pieces.get(playerModesCB
+						.getSelectedIndex()) : localPiece;
 				PlayerModeExt pme = (PlayerModeExt) modesCBox.getSelectedItem();
 				PlayerMode m = pme.getPlayerMode();
 				playerModes.put(p, m);
@@ -186,7 +204,8 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		modes.add(setModeBtn);
 
 		JPanel autoOptions = new JPanel();
-		autoOptions.setBorder(BorderFactory.createTitledBorder(b, "Automatic Moves"));
+		autoOptions.setBorder(BorderFactory.createTitledBorder(b,
+				"Automatic Moves"));
 
 		randomBtn = new JButton("Random");
 		randomBtn.addActionListener(new ActionListener() {
@@ -213,6 +232,33 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			autoOptions.add(automaticBtn);
 		}
 
+		JLabel secondsLabel = new JLabel("seconds", JLabel.CENTER);
+		secondsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		JSlider timeoutSeconds = new JSlider(JSlider.HORIZONTAL, 0, 60, timeOut);
+		timeoutSeconds.setMajorTickSpacing(10);
+		timeoutSeconds.setMinorTickSpacing(1);
+		timeoutSeconds.setPaintTicks(true);
+		timeoutSeconds.setPaintLabels(true);
+
+		timeoutSeconds.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				JSlider source = (JSlider) e.getSource();
+				if (!source.getValueIsAdjusting()) {
+					timeOut = source.getValue();
+					System.out.println(timeOut);
+				}
+			}
+		});
+
+		JPanel timeoutOption = new JPanel();
+		timeoutOption.setBorder(BorderFactory.createTitledBorder(b, "Timeout"));
+		timeoutOption.setLayout(new BoxLayout(timeoutOption,
+				BoxLayout.PAGE_AXIS));
+		timeoutOption.add(secondsLabel);
+		timeoutOption.add(timeoutSeconds);
+
 		JPanel quitRestartPanel = new JPanel();
 
 		exitBtn = new JButton("Exit");
@@ -235,7 +281,8 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		quitRestartPanel.add(restartBtn);
 
 		JPanel dashboardPanel = new JPanel();
-		dashboardPanel.setLayout(new BoxLayout(dashboardPanel, BoxLayout.Y_AXIS));
+		dashboardPanel
+				.setLayout(new BoxLayout(dashboardPanel, BoxLayout.Y_AXIS));
 		dashboardPanel.add(statusMessages);
 		dashboardPanel.add(playerInfo);
 		dashboardPanel.add(colors);
@@ -243,6 +290,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		if (null != randPlayer || null != aiPlayer) {
 			dashboardPanel.add(modes);
 			dashboardPanel.add(autoOptions);
+			dashboardPanel.add(timeoutOption);
 		}
 
 		dashboardPanel.add(quitRestartPanel);
@@ -297,43 +345,50 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	}
 
 	final protected void addMsg(String msg) {
-		if (messages.getText().length() == 0) {
-			messages.setText(msg);
-		} else {
-			messages.setText(messages.getText() + "\n" + msg);
-		}
+		messages.addLine(msg);
 	}
 
 	final protected void decideMakeManualMove(Player manualPlayer) {
-		try {
-			ctrl.makeMove(manualPlayer);
-		} catch (Exception e) {
-
-		}
+		makeMove(manualPlayer);
 	}
 
 	private void decideMakeRndOrAutoMove() {
-		try {
-			ctrl.makeMove(playerModes.get(turn) == PlayerMode.AI ? aiPlayer : randPlayer);
-		} catch (Exception e) {
-
+		switch (playerModes.get(turn)){
+		case AI:
+			decideMakeAutomaticMove();
+			break;
+		case RANDOM:
+			decideMakeRandomMove();
+			break;
+		default:
+			break;		
 		}
 	}
 
 	private void decideMakeAutomaticMove() {
-		try {
-			ctrl.makeMove(aiPlayer);
-		} catch (Exception e) {
-
-		}
+		makeMove(aiPlayer);
 	}
 
 	private void decideMakeRandomMove() {
+		makeMove(randPlayer);
+	}
+
+	private void makeMove(Player player) {
 		try {
-			ctrl.makeMove(randPlayer);
+			SwingWorker<Void, Void> w = new SwingWorker<Void, Void>() {
+				@Override
+				protected Void doInBackground() throws Exception {
+					ctrl.makeMove(player);
+					return null;
+				}
+			};
+			setUIEnabled(false);
+			w.execute();
+			//ExecutorService service = Executors.newSingleThreadExecutor();
+			//Future<?> f = service.submit(w);
 		} catch (Exception e) {
 
-		}
+		}		
 	}
 
 	protected abstract void initBoardGUI();
@@ -345,7 +400,8 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	protected abstract void redrawBoard();
 
 	@Override
-	public void onGameStart(Board board, String gameDesc, List<Piece> pieces, Piece turn) {
+	public void onGameStart(Board board, String gameDesc, List<Piece> pieces,
+			Piece turn) {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -405,10 +461,12 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		});
 	}
 
-	private void handleOnGameStart(Board board, String gameDesc, List<Piece> pieces) {
+	private void handleOnGameStart(Board board, String gameDesc,
+			List<Piece> pieces) {
 		this.board = board;
 		if (null != localPiece) {
-			this.setTitle("Board Games: " + gameDesc + " (" + localPiece.toString() + ")");
+			this.setTitle("Board Games: " + gameDesc + " ("
+					+ localPiece.toString() + ")");
 		} else {
 			this.setTitle("Board Games: " + gameDesc);
 		}
