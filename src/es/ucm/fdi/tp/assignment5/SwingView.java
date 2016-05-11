@@ -11,9 +11,12 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -67,8 +70,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	private JButton restartBtn;
 	private int timeOut;
 
-	public SwingView(Observable<GameObserver> g, Controller c, Piece lp,
-			Player randPlayer, Player aiPlayer) {
+	public SwingView(Observable<GameObserver> g, Controller c, Piece lp, Player randPlayer, Player aiPlayer) {
 		super();
 		ctrl = c;
 		localPiece = lp;
@@ -89,10 +91,8 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		JPanel statusMessages = new JPanel();
 		statusMessages.setLayout(new BorderLayout());
-		statusMessages.setBorder(BorderFactory.createTitledBorder(b,
-				"Status Messages"));
-		JScrollPane messagePane = new JScrollPane(messages,
-				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+		statusMessages.setBorder(BorderFactory.createTitledBorder(b, "Status Messages"));
+		JScrollPane messagePane = new JScrollPane(messages, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		statusMessages.setPreferredSize(new Dimension(200, 500));
 		// messagePane.setPreferredSize(new Dimension(300, 300));
@@ -101,8 +101,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		tmodel = new PlayerTableModel();
 		JTable playerInfoTable = new JTable(tmodel) {
 			@Override
-			public Component prepareRenderer(TableCellRenderer renderer,
-					int row, int col) {
+			public Component prepareRenderer(TableCellRenderer renderer, int row, int col) {
 				Component comp = super.prepareRenderer(renderer, row, col);
 				Color c = pieceColors.get(pieces.get(row));
 				comp.setBackground(pieceColors.get(pieces.get(row)));
@@ -118,8 +117,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		JPanel playerInfo = new JPanel();
 		playerInfo.setLayout(new BorderLayout());
-		playerInfo.setBorder(BorderFactory.createTitledBorder(b,
-				"Player Information"));
+		playerInfo.setBorder(BorderFactory.createTitledBorder(b, "Player Information"));
 		playerInfo.add(new JScrollPane(playerInfoTable), BorderLayout.CENTER);
 		playerInfoTable.setFillsViewportHeight(true);
 
@@ -138,8 +136,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					Piece p = pieces.get(playerColorsCB.getSelectedIndex());
-					ColorChooser c = new ColorChooser(new JFrame(),
-							"Choose Line Color", pieceColors.get(p));
+					ColorChooser c = new ColorChooser(new JFrame(), "Choose Line Color", pieceColors.get(p));
 					if (c.getColor() != null) {
 						pieceColors.put(p, c.getColor());
 						SwingUtilities.invokeLater(new Runnable() {
@@ -180,8 +177,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				final Piece p = localPiece == null ? pieces.get(playerModesCB
-						.getSelectedIndex()) : localPiece;
+				final Piece p = localPiece == null ? pieces.get(playerModesCB.getSelectedIndex()) : localPiece;
 				PlayerModeExt pme = (PlayerModeExt) modesCBox.getSelectedItem();
 				PlayerMode m = pme.getPlayerMode();
 				playerModes.put(p, m);
@@ -190,9 +186,9 @@ public abstract class SwingView extends JFrame implements GameObserver {
 					public void run() {
 						tmodel.setMode(p, m);
 						tmodel.refresh();
-						if (turn.equals(p)) {
-							decideMakeRndOrAutoMove();
-						}
+//						if (turn.equals(p)) {
+//							decideMakeRndOrAutoMove();
+//						}
 					}
 				});
 			}
@@ -204,8 +200,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		modes.add(setModeBtn);
 
 		JPanel autoOptions = new JPanel();
-		autoOptions.setBorder(BorderFactory.createTitledBorder(b,
-				"Automatic Moves"));
+		autoOptions.setBorder(BorderFactory.createTitledBorder(b, "Automatic Moves"));
 
 		randomBtn = new JButton("Random");
 		randomBtn.addActionListener(new ActionListener() {
@@ -254,8 +249,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		JPanel timeoutOption = new JPanel();
 		timeoutOption.setBorder(BorderFactory.createTitledBorder(b, "Timeout"));
-		timeoutOption.setLayout(new BoxLayout(timeoutOption,
-				BoxLayout.PAGE_AXIS));
+		timeoutOption.setLayout(new BoxLayout(timeoutOption, BoxLayout.PAGE_AXIS));
 		timeoutOption.add(secondsLabel);
 		timeoutOption.add(timeoutSeconds);
 
@@ -273,7 +267,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		restartBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ctrl.restart();
+				onRestart();
 			}
 		});
 
@@ -281,8 +275,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		quitRestartPanel.add(restartBtn);
 
 		JPanel dashboardPanel = new JPanel();
-		dashboardPanel
-				.setLayout(new BoxLayout(dashboardPanel, BoxLayout.Y_AXIS));
+		dashboardPanel.setLayout(new BoxLayout(dashboardPanel, BoxLayout.Y_AXIS));
 		dashboardPanel.add(statusMessages);
 		dashboardPanel.add(playerInfo);
 		dashboardPanel.add(colors);
@@ -349,11 +342,11 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	}
 
 	final protected void decideMakeManualMove(Player manualPlayer) {
-		makeMove(manualPlayer);
+		propagateMovement(manualPlayer);
 	}
 
 	private void decideMakeRndOrAutoMove() {
-		switch (playerModes.get(turn)){
+		switch (playerModes.get(turn)) {
 		case AI:
 			decideMakeAutomaticMove();
 			break;
@@ -361,34 +354,42 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			decideMakeRandomMove();
 			break;
 		default:
-			break;		
+			break;
 		}
 	}
 
 	private void decideMakeAutomaticMove() {
-		makeMove(aiPlayer);
+		propagateMovement(aiPlayer);
 	}
 
 	private void decideMakeRandomMove() {
-		makeMove(randPlayer);
+		propagateMovement(randPlayer);
 	}
 
-	private void makeMove(Player player) {
+	private void propagateMovement(final Player player) {
 		try {
-			SwingWorker<Void, Void> w = new SwingWorker<Void, Void>() {
+			setUIEnabled(false);
+			setExitRestartEnabled(false);
+			new SwingWorker<Void, Void>() {
 				@Override
 				protected Void doInBackground() throws Exception {
 					ctrl.makeMove(player);
 					return null;
 				}
-			};
-			setUIEnabled(false);
-			w.execute();
-			//ExecutorService service = Executors.newSingleThreadExecutor();
-			//Future<?> f = service.submit(w);
+			}.execute();
+
+			/*Timer t = new Timer();
+			t.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					w.cancel(!w.isCancelled() && !w.isDone());
+				}
+			}, timeOut);*/
+			// ExecutorService service = Executors.newSingleThreadExecutor();
+			// Future<?> f = service.submit(w);
 		} catch (Exception e) {
 
-		}		
+		}
 	}
 
 	protected abstract void initBoardGUI();
@@ -400,8 +401,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	protected abstract void redrawBoard();
 
 	@Override
-	public void onGameStart(Board board, String gameDesc, List<Piece> pieces,
-			Piece turn) {
+	public void onGameStart(Board board, String gameDesc, List<Piece> pieces, Piece turn) {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -461,12 +461,14 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		});
 	}
 
-	private void handleOnGameStart(Board board, String gameDesc,
-			List<Piece> pieces) {
+	protected void onRestart() {
+		ctrl.restart();
+	}
+
+	private void handleOnGameStart(Board board, String gameDesc, List<Piece> pieces) {
 		this.board = board;
 		if (null != localPiece) {
-			this.setTitle("Board Games: " + gameDesc + " ("
-					+ localPiece.toString() + ")");
+			this.setTitle("Board Games: " + gameDesc + " (" + localPiece.toString() + ")");
 		} else {
 			this.setTitle("Board Games: " + gameDesc);
 		}
@@ -562,6 +564,11 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 	protected void handleOnError(String msg) {
 		addMsg("[Error] " + msg);
+		if (null == localPiece || localPiece.equals(turn)) {
+			this.playerModes.put(turn, PlayerMode.MANUAL);
+			setUIEnabled(true);
+			setExitRestartEnabled(true);
+		}
 	}
 
 	private void printState(State state, Piece winner) {
