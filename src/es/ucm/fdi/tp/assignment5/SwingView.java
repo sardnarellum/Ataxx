@@ -17,6 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -39,23 +40,28 @@ import javax.swing.table.TableCellRenderer;
 
 import es.ucm.fdi.tp.assignment5.Main.PlayerMode;
 import es.ucm.fdi.tp.assignment6.LogArea;
+import es.ucm.fdi.tp.assignment6.TimeOutPlayer;
 import es.ucm.fdi.tp.basecode.bgame.Utils;
 import es.ucm.fdi.tp.basecode.bgame.control.Controller;
 import es.ucm.fdi.tp.basecode.bgame.control.Player;
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
 import es.ucm.fdi.tp.basecode.bgame.model.Game.State;
+import es.ucm.fdi.tp.basecode.bgame.model.GameError;
 import es.ucm.fdi.tp.basecode.bgame.model.GameObserver;
 import es.ucm.fdi.tp.basecode.bgame.model.Observable;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
+
+
 @SuppressWarnings("serial")
 public abstract class SwingView extends JFrame implements GameObserver {
+	public static final int DEFAULT_TIMEOUT = 5;
 
 	private Controller ctrl;
 	private Piece localPiece;
 	private Piece turn;
-	private Player randPlayer;
-	private Player aiPlayer;
+	private TimeOutPlayer randPlayer;
+	private TimeOutPlayer aiPlayer;
 	private Board board;
 	private List<Piece> pieces;
 	private Map<Piece, Color> pieceColors;
@@ -68,16 +74,14 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	private JButton automaticBtn;
 	private JButton exitBtn;
 	private JButton restartBtn;
-	private int timeOut;
 
 	public SwingView(Observable<GameObserver> g, Controller c, Piece lp, Player randPlayer, Player aiPlayer) {
 		super();
 		ctrl = c;
 		localPiece = lp;
 		playerModes = new HashMap<Piece, PlayerMode>();
-		this.randPlayer = randPlayer;
-		this.aiPlayer = aiPlayer;
-		this.timeOut = 5;
+		this.randPlayer = new TimeOutPlayer(randPlayer, DEFAULT_TIMEOUT);
+		this.aiPlayer = new TimeOutPlayer(aiPlayer, DEFAULT_TIMEOUT);
 		initGUI();
 	}
 
@@ -180,17 +184,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 				final Piece p = localPiece == null ? pieces.get(playerModesCB.getSelectedIndex()) : localPiece;
 				PlayerModeExt pme = (PlayerModeExt) modesCBox.getSelectedItem();
 				PlayerMode m = pme.getPlayerMode();
-				playerModes.put(p, m);
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						tmodel.setMode(p, m);
-						tmodel.refresh();
-//						if (turn.equals(p)) {
-//							decideMakeRndOrAutoMove();
-//						}
-					}
-				});
+				setPlayerMode(p, m);
 			}
 
 		});
@@ -210,7 +204,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			}
 		});
 
-		automaticBtn = new JButton("Automatic");
+		automaticBtn = new JButton("Intelligent");
 		automaticBtn.addActionListener(new ActionListener() {
 
 			@Override
@@ -230,7 +224,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		JLabel secondsLabel = new JLabel("seconds", JLabel.CENTER);
 		secondsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-		JSlider timeoutSeconds = new JSlider(JSlider.HORIZONTAL, 0, 60, timeOut);
+		JSlider timeoutSeconds = new JSlider(JSlider.HORIZONTAL, 0, 60, DEFAULT_TIMEOUT);
 		timeoutSeconds.setMajorTickSpacing(10);
 		timeoutSeconds.setMinorTickSpacing(1);
 		timeoutSeconds.setPaintTicks(true);
@@ -241,8 +235,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			public void stateChanged(ChangeEvent e) {
 				JSlider source = (JSlider) e.getSource();
 				if (!source.getValueIsAdjusting()) {
-					timeOut = source.getValue();
-					System.out.println(timeOut);
+					setTimeOut(source.getValue());
 				}
 			}
 		});
@@ -298,6 +291,25 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(900, 600);
 		setVisible(true);
+	}
+
+	private void setPlayerMode(Piece piece, PlayerMode mode) {
+		playerModes.put(piece, mode);
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				tmodel.setMode(piece, mode);
+				tmodel.refresh();
+//				if (turn.equals(p)) {
+//					decideMakeRndOrAutoMove();
+//				}
+			}
+		});
+	}
+
+	private void setTimeOut(int seconds) {
+		aiPlayer.setTimeOut(seconds);
+		randPlayer.setTimeOut(seconds);
 	}
 
 	final protected Piece getTurn() {
@@ -377,18 +389,8 @@ public abstract class SwingView extends JFrame implements GameObserver {
 					return null;
 				}
 			}.execute();
-
-			/*Timer t = new Timer();
-			t.schedule(new TimerTask() {
-				@Override
-				public void run() {
-					w.cancel(!w.isCancelled() && !w.isDone());
-				}
-			}, timeOut);*/
-			// ExecutorService service = Executors.newSingleThreadExecutor();
-			// Future<?> f = service.submit(w);
-		} catch (Exception e) {
-
+		} catch (GameError e) {
+			handleOnError(e.getMessage() + " turn is:" + turn);
 		}
 	}
 
@@ -565,7 +567,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	protected void handleOnError(String msg) {
 		addMsg("[Error] " + msg);
 		if (null == localPiece || localPiece.equals(turn)) {
-			this.playerModes.put(turn, PlayerMode.MANUAL);
+			setPlayerMode(turn, PlayerMode.MANUAL);
 			setUIEnabled(true);
 			setExitRestartEnabled(true);
 		}
