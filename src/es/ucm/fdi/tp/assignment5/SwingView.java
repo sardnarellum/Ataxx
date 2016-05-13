@@ -11,13 +11,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -30,7 +23,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.border.Border;
@@ -50,8 +42,6 @@ import es.ucm.fdi.tp.basecode.bgame.model.GameError;
 import es.ucm.fdi.tp.basecode.bgame.model.GameObserver;
 import es.ucm.fdi.tp.basecode.bgame.model.Observable;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
-
-
 
 @SuppressWarnings("serial")
 public abstract class SwingView extends JFrame implements GameObserver {
@@ -196,7 +186,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		JPanel autoOptions = new JPanel();
 		autoOptions.setBorder(BorderFactory.createTitledBorder(b, "Automatic Moves"));
 
-		randomBtn = new JButton("Random");
+		randomBtn = new JButton(PlayerMode.RANDOM.getDesc());
 		randomBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -204,7 +194,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			}
 		});
 
-		automaticBtn = new JButton("Intelligent");
+		automaticBtn = new JButton(PlayerMode.AI.getDesc());
 		automaticBtn.addActionListener(new ActionListener() {
 
 			@Override
@@ -300,9 +290,9 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			public void run() {
 				tmodel.setMode(piece, mode);
 				tmodel.refresh();
-//				if (turn.equals(p)) {
-//					decideMakeRndOrAutoMove();
-//				}
+				if (turn.equals(piece)) {
+					decideMakeRndOrAutoMove();
+				}
 			}
 		});
 	}
@@ -350,7 +340,12 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	}
 
 	final protected void addMsg(String msg) {
-		messages.addLine(msg);
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				messages.addLine(msg);
+			}
+		});
 	}
 
 	final protected void decideMakeManualMove(Player manualPlayer) {

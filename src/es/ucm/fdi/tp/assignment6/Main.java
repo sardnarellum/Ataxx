@@ -111,7 +111,7 @@ public class Main {
 	 * <p>
 	 * Modos de juego.
 	 */
-	enum PlayerMode {
+	public enum PlayerMode {
 		MANUAL("m", "Manual"), RANDOM("r", "Random"), AI("a", "Automatics");
 
 		private String id;
