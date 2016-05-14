@@ -1,8 +1,9 @@
 package es.ucm.fdi.tp.assignment6;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.Socket;
-import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.List;
 
 import es.ucm.fdi.tp.basecode.bgame.control.Controller;
@@ -13,15 +14,18 @@ import es.ucm.fdi.tp.basecode.bgame.control.commands.PlayCommand;
 import es.ucm.fdi.tp.basecode.bgame.control.commands.QuitCommand;
 import es.ucm.fdi.tp.basecode.bgame.control.commands.RestartCommand;
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
-import es.ucm.fdi.tp.basecode.bgame.model.Game;
 import es.ucm.fdi.tp.basecode.bgame.model.GameError;
 import es.ucm.fdi.tp.basecode.bgame.model.GameObserver;
 import es.ucm.fdi.tp.basecode.bgame.model.Observable;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 import es.ucm.fdi.tp.basecode.bgame.model.Game.State;
 
-public class GameClient extends Controller implements Observable<GameObserver> {
-
+public class GameClient extends Controller implements Observable<GameObserver>, Serializable {
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private final String host;
 	private final int port;
 	private Piece localPiece;
@@ -35,6 +39,7 @@ public class GameClient extends Controller implements Observable<GameObserver> {
 		this.host = host;
 		this.port = port;
 		this.gameOver = false;
+		this.obs = new ArrayList<GameObserver>();
 		connect();
 	}
 
@@ -64,6 +69,11 @@ public class GameClient extends Controller implements Observable<GameObserver> {
 			@Override
 			public void onGameOver(Board board, State state, Piece winner) {
 				gameOver = true;
+				try {
+					server.stop();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 
 			@Override
@@ -82,6 +92,7 @@ public class GameClient extends Controller implements Observable<GameObserver> {
 					res.run(o);
 				}
 			} catch (ClassNotFoundException | IOException e) {
+				throw new GameError("An exception occured while handling a response: " + e.getMessage());
 			}
 		}
 	}
@@ -116,6 +127,7 @@ public class GameClient extends Controller implements Observable<GameObserver> {
 			try {
 				server.sendObject(command);
 			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}

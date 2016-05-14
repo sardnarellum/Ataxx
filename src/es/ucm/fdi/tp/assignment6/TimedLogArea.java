@@ -9,8 +9,12 @@ import java.util.Calendar;
  * @author Müller András
  *
  */
-@SuppressWarnings("serial")
+
 public class TimedLogArea extends LogArea {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	final SimpleDateFormat sdf;
 	final String s;
 	

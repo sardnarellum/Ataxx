@@ -17,9 +17,9 @@ public class Connection {
 	}
 
 	public void sendObject(Object r) throws IOException {
+		out.reset();
 		out.writeObject(r);
 		out.flush();
-		out.reset();
 	}
 
 	public Object getObject() throws IOException, ClassNotFoundException {
@@ -28,5 +28,13 @@ public class Connection {
 
 	public void stop() throws IOException {
 		s.close();
+	}
+	
+	/**
+	 * The underlying {@link Socket}'s remote IP address and its remote port number.
+	 */
+	@Override
+	public String toString(){
+		return s.getInetAddress().toString() + ":" + s.getPort();		
 	}
 }

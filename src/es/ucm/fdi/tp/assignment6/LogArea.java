@@ -8,9 +8,14 @@ import javax.swing.JTextArea;
  * @author Müller András
  *
  */
-@SuppressWarnings("serial")
+
 public class LogArea extends JTextArea {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	/**
 	 * Itt adds a new line to the {@link JTextArea} superclass.
 	 * 

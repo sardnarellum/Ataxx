@@ -1,5 +1,7 @@
 package es.ucm.fdi.tp.assignment5.ataxx;
 
+import java.lang.reflect.InvocationTargetException;
+
 import javax.swing.SwingUtilities;
 
 import es.ucm.fdi.tp.assignment4.ataxx.AtaxxFactory;
@@ -9,8 +11,12 @@ import es.ucm.fdi.tp.basecode.bgame.model.GameObserver;
 import es.ucm.fdi.tp.basecode.bgame.model.Observable;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
-@SuppressWarnings("serial")
 public class AtaxxFactoryExt extends AtaxxFactory {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	public AtaxxFactoryExt(int qObstacles, Integer dim) {
 		super(qObstacles, dim);
@@ -23,13 +29,17 @@ public class AtaxxFactoryExt extends AtaxxFactory {
 	@Override
 	public void createSwingView(final Observable<GameObserver> g, final Controller c, final Piece viewPiece,
 			Player random, Player ai) {
-		SwingUtilities.invokeLater(new Runnable() {
+		try {
+			SwingUtilities.invokeAndWait(new Runnable() {
 
-			@Override
-			public void run() {
-				GameObserver o = new AtaxxSwingView(g, c, viewPiece, random, ai);
-				g.addObserver(o);
-			}
-		});
+				@Override
+				public void run() {
+					GameObserver o = new AtaxxSwingView(g, c, viewPiece, random, ai);
+					g.addObserver(o);
+				}
+			});
+		} catch (InvocationTargetException | InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 }

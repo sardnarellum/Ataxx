@@ -2,6 +2,8 @@ package es.ucm.fdi.tp.assignment6;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
@@ -9,19 +11,17 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 
 import es.ucm.fdi.tp.basecode.bgame.control.Controller;
 import es.ucm.fdi.tp.basecode.bgame.control.GameFactory;
 import es.ucm.fdi.tp.basecode.bgame.control.Player;
+import es.ucm.fdi.tp.basecode.bgame.control.commands.Command;
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
 import es.ucm.fdi.tp.basecode.bgame.model.Game;
 import es.ucm.fdi.tp.basecode.bgame.model.Game.State;
@@ -33,7 +33,6 @@ public class GameServer extends Controller implements GameObserver {
 
 	private final int port;
 	private final int numPlayers;
-	private int numClients;
 	private GameFactory gameFactory;
 	private List<Connection> clients;
 	private TimedLogArea logArea;
@@ -53,38 +52,32 @@ public class GameServer extends Controller implements GameObserver {
 
 	@Override
 	public void onGameStart(Board board, String gameDesc, List<Piece> pieces, Piece turn) {
-		// TODO Auto-generated method stub
-
+		forwardNotification(new GameStartResponse(board, gameDesc, pieces, turn));
 	}
 
 	@Override
 	public void onGameOver(Board board, State state, Piece winner) {
-		// TODO Auto-generated method stub
-
+		forwardNotification(new GameOverResponse(board, state, winner));
 	}
 
 	@Override
 	public void onMoveStart(Board board, Piece turn) {
-		// TODO Auto-generated method stub
-
+		forwardNotification(new MoveStartResponse(board, turn));
 	}
 
 	@Override
 	public void onMoveEnd(Board board, Piece turn, boolean success) {
-		// TODO Auto-generated method stub
-
+		forwardNotification(new MoveEndResponse(board, turn, success));
 	}
 
 	@Override
 	public void onChangeTurn(Board board, Piece turn) {
-		// TODO Auto-generated method stub
-
+		forwardNotification(new ChangeTurnResponse(board, turn));
 	}
 
 	@Override
 	public void onError(String msg) {
-		// TODO Auto-generated method stub
-
+		forwardNotification(new ErrorResponse(msg));
 	}
 
 	@Override
@@ -97,13 +90,15 @@ public class GameServer extends Controller implements GameObserver {
 
 	@Override
 	public synchronized void stop() {
-		try {
+		if (State.InPlay == game.getState()) {
 			super.stop();
-		} catch (GameError e) {
-		} finally {
+		}
+		gameOver = true;
+		for (Connection c : clients) {
 			try {
-				server.close();
+				c.stop();
 			} catch (IOException e) {
+				logError("An error occured when tried to disconnect client " + c + ".");
 			}
 		}
 	}
@@ -118,19 +113,19 @@ public class GameServer extends Controller implements GameObserver {
 
 	@Override
 	public void start() {
-		controlGUI();
 		try {
+			initGUI();
 			startServer();
-		} catch (IOException e) {
-			log("An error has occured with the starting of the server: " + e.getMessage());
+		} catch (GameError | IOException e) {
+			logError("An error has occured when tried to start the server: " + e.getMessage());
 		}
 	}
 
-	public int clientCount() {
+	private int clientCount() {
 		return clients != null ? clients.size() : 0;
 	}
 
-	private void controlGUI() {
+	private void initGUI() throws RuntimeException {
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
 
@@ -140,7 +135,7 @@ public class GameServer extends Controller implements GameObserver {
 				}
 			});
 		} catch (InvocationTargetException | InterruptedException e) {
-			throw new GameError("Something went wrong with the construction of the GUI.");
+			throw new RuntimeException("Something went wrong with the construction of the GUI: " + e.getMessage());
 		}
 	}
 
@@ -159,6 +154,22 @@ public class GameServer extends Controller implements GameObserver {
 		logPanel.add(logScrollPane);
 
 		JButton stopBtn = new JButton("Stop");
+		stopBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int status = 0;
+				try {
+					stopServer();
+				} catch (GameError ex) {
+					status = 1;
+					System.err.println(ex.getMessage());
+				} finally {
+					System.exit(status);
+				}
+			}
+
+		});
 
 		JPanel contentPanel = new JPanel();
 		contentPanel.setLayout(new BorderLayout(5, 5));
@@ -176,6 +187,100 @@ public class GameServer extends Controller implements GameObserver {
 		window.setVisible(true);
 	}
 
+	private void startServer() throws IOException {
+		try {
+			server = new ServerSocket(port);
+			clients = new ArrayList<Connection>();
+			stopped = false;
+			log("Waiting for a connections...");
+			while (!stopped) {
+				Socket s = server.accept();
+				handleRequest(s);
+			}
+		} catch (IOException e) {
+			if (!stopped) {
+				throw new IOException("Error while waiting for a connection: " + e.getMessage());
+			}
+		}
+	}
+
+	private void stopServer() throws GameError {
+		stopped = true;
+		stop();
+		try {
+			server.close();
+		} catch (IOException e) {
+			throw new GameError("An error occured when tried to stop the server: " + e.getMessage());
+		}
+	}
+
+	private void handleRequest(Socket s) {
+		try {
+			Connection c = new Connection(s);
+			Object clientRequest = c.getObject();
+			if (!(clientRequest instanceof String) || !((String) clientRequest).equalsIgnoreCase("Connect")) {
+				logError("Invalid request from " + c);
+				c.sendObject(new GameError("Invalid Request"));
+				c.stop();
+				return;
+			}
+
+			if (!(clientCount() < numPlayers)) {
+				c.sendObject(new GameError("All slots are occupied."));
+				logError(s.getPort() + " tried to connect, but all slots are occupied.");
+				return;
+			}
+
+			clients.add(c);
+			c.sendObject("OK");
+			c.sendObject(gameFactory);
+			c.sendObject(pieces.get(clients.indexOf(c)));
+			log("[New client] " + c + " accepted.");
+
+			if (clientCount() == numPlayers) {
+				super.start();
+			}
+
+			startClientListener(c);
+		} catch (IOException | ClassNotFoundException e) {
+		}
+	}
+
+	private void forwardNotification(Response response) {
+		for(Connection c : clients){
+			try {
+				c.sendObject(response);
+				log("[FWN] " + c + " - " + response.toString());
+			} catch (IOException e) {
+				logError("Unable to send response to: " + c);
+			}
+		}
+	}
+
+	private void startClientListener(Connection c) {
+		gameOver = false;
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while (!stopped && !gameOver) {
+					try {
+						Command cmd = (Command)c.getObject();
+						log("[CMD: "  + cmd.helpText() + "] " + c);
+						cmd.execute(GameServer.this);						
+					} catch (ClassNotFoundException | IOException e) {
+						if (!stopped && !gameOver){
+							logError("Unable to process command: " + e.getMessage());
+							stop();
+						}
+					} catch (Exception e){
+						logError("Undexpected error: " + e.getMessage());
+					}
+				}
+			}
+		});
+		t.start();
+	}
+
 	private void log(String msg) {
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
@@ -185,50 +290,7 @@ public class GameServer extends Controller implements GameObserver {
 		});
 	}
 
-	private void startServer() throws IOException {
-		try {
-			server = new ServerSocket(port);
-			clients = new ArrayList<Connection>();
-			stopped = false;
-			log("Waiting for players...");
-			while (!stopped) {
-				Socket s = server.accept();
-				handleRequest(s);
-			}
-		} catch (IOException e) {
-			throw e;
-		} finally {
-			stop();
-		}
-	}
-
-	private void handleRequest(Socket s) {
-		try {
-			Connection c = new Connection(s);
-			Object clientRequest = c.getObject();
-			if (!(clientRequest instanceof String) || !((String) clientRequest).equalsIgnoreCase("Connect")) {
-				log("[ERROR] Invalid request from " + s.getPort());
-				c.sendObject(new GameError("Invalid Request"));
-				c.stop();
-				return;
-			}
-
-			if (!(clientCount() < numPlayers)) {
-				c.sendObject(new GameError("All slots are occupied."));
-				log("[ERROR] " + s.getPort() + " tried to connect, but all slots are occupied.");
-				return;
-			}
-
-			clients.add(c);
-			c.sendObject("OK");
-			c.sendObject(gameFactory);
-			c.sendObject(pieces.get(clients.indexOf(c)));
-			log("[NEW CLIENT] " + s.getPort() + " accepted.");
-
-			if (clientCount() == numPlayers) {
-				// TODO start game
-			}
-		} catch (IOException | ClassNotFoundException e) {
-		}
+	private void logError(String msg) {
+		log("[Error] " + msg);
 	}
 }

@@ -15,9 +15,12 @@ import es.ucm.fdi.tp.basecode.bgame.model.Observable;
 import es.ucm.fdi.tp.basecode.bgame.model.Pair;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
-@SuppressWarnings("serial")
 public class AtaxxSwingView extends RectBoardSwingView {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private Pair<Integer, Integer> currentSource;
 	Boolean hintDisplayed;
 
@@ -52,6 +55,11 @@ public class AtaxxSwingView extends RectBoardSwingView {
 			} else {
 				addMsg("Destination: (" + row + "," + col + ")");
 				TwoStepSwingPlayer player = new TwoStepSwingPlayer(){
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {
 						return new AtaxxMove(getFromRow(), getFromCol(), getToRow(), getToCol(), p);
