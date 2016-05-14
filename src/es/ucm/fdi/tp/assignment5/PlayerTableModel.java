@@ -10,9 +10,12 @@ import javax.swing.table.AbstractTableModel;
 import es.ucm.fdi.tp.assignment5.Main.PlayerMode;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
-@SuppressWarnings("serial")
 public class PlayerTableModel extends AbstractTableModel {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private final String colNames[];
 	private List<Piece> pieces;
 	private Map<Piece, PlayerMode> modes;

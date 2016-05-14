@@ -2,9 +2,12 @@ package es.ucm.fdi.tp.assignment5;
 
 import es.ucm.fdi.tp.basecode.bgame.control.Player;
 
-@SuppressWarnings("serial")
 public abstract class TwoStepSwingPlayer extends Player {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private int fromRow;
 	private int fromCol;
 	private int toRow;

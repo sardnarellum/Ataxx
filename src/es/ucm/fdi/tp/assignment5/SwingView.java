@@ -43,8 +43,12 @@ import es.ucm.fdi.tp.basecode.bgame.model.GameObserver;
 import es.ucm.fdi.tp.basecode.bgame.model.Observable;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
-@SuppressWarnings("serial")
 public abstract class SwingView extends JFrame implements GameObserver {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public static final int DEFAULT_TIMEOUT = 5;
 
 	private Controller ctrl;
@@ -94,6 +98,11 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		tmodel = new PlayerTableModel();
 		JTable playerInfoTable = new JTable(tmodel) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Component prepareRenderer(TableCellRenderer renderer, int row, int col) {
 				Component comp = super.prepareRenderer(renderer, row, col);

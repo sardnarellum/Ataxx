@@ -12,8 +12,12 @@ import es.ucm.fdi.tp.basecode.bgame.model.Observable;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 import es.ucm.fdi.tp.basecode.connectn.ConnectNMove;
 
-@SuppressWarnings("serial")
 public class BasicRectBoardSwingView extends RectBoardSwingView {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
 	public BasicRectBoardSwingView(Observable<GameObserver> g, Controller c, Piece lp, Player randPlayer,
 			Player aiPlayer) {
@@ -24,6 +28,11 @@ public class BasicRectBoardSwingView extends RectBoardSwingView {
 	protected void handleMouseClick(int row, int col, int mouseBtn) {
 		if (1 == mouseBtn) {
 			Player pl = new Player() {
+
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
 
 				@Override
 				public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {
