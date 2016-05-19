@@ -9,6 +9,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import es.ucm.fdi.tp.basecode.bgame.Utils;
 import es.ucm.fdi.tp.basecode.bgame.control.Player;
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
 import es.ucm.fdi.tp.basecode.bgame.model.GameError;
@@ -22,7 +23,6 @@ public class TimeOutPlayer extends Player {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private static ExecutorService service;
 
 	private final Player player;
 	private int to;
@@ -30,12 +30,12 @@ public class TimeOutPlayer extends Player {
 	public TimeOutPlayer(Player player, int timeOut) {
 		this.player = player;
 		this.setTimeOut(timeOut);
-		service = Executors.newSingleThreadExecutor();
 	}
 
 	@Override
 	public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {
-		Future<GameMove> f = service.submit(new Callable<GameMove>() {
+		//System.out.println(service);
+		Future<GameMove> f = Utils.worker.submit(new Callable<GameMove>() {
 			@Override
 			public GameMove call() throws Exception {
 				return player.requestMove(p, board, pieces, rules);

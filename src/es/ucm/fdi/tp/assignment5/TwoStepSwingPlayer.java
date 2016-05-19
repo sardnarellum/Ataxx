@@ -1,8 +1,15 @@
 package es.ucm.fdi.tp.assignment5;
 
-import es.ucm.fdi.tp.basecode.bgame.control.Player;
+import java.util.List;
 
-public abstract class TwoStepSwingPlayer extends Player {
+import es.ucm.fdi.tp.assignment4.ataxx.AtaxxMove;
+import es.ucm.fdi.tp.basecode.bgame.control.Player;
+import es.ucm.fdi.tp.basecode.bgame.model.Board;
+import es.ucm.fdi.tp.basecode.bgame.model.GameMove;
+import es.ucm.fdi.tp.basecode.bgame.model.GameRules;
+import es.ucm.fdi.tp.basecode.bgame.model.Piece;
+
+public class TwoStepSwingPlayer extends Player {
 
 	/**
 	 * 
@@ -34,5 +41,10 @@ public abstract class TwoStepSwingPlayer extends Player {
 
 	public int getToCol() {
 		return toCol;
+	}
+
+	@Override
+	public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {
+		return new AtaxxMove(getFromRow(), getFromCol(), getToRow(), getToCol(), p);
 	}
 }

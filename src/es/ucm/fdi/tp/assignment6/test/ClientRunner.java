@@ -7,7 +7,7 @@ import es.ucm.fdi.tp.assignment6.Main;
 
 public class ClientRunner {
 	
-	private static final int CLIENTS = 2;
+	private static final int CLIENTS = 4;
 
 	public static void main(String[] args) {
 		String[] argsClient = {"-am", "c", "-aialg", "minmaxab", "-md", "5"};

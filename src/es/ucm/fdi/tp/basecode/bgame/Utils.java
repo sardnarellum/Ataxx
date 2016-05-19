@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -21,7 +22,7 @@ public class Utils {
 	 * An {@link Executor} created using
 	 * {@link Executors#newCachedThreadPool()}.
 	 */
-	public final static Executor worker = Executors.newCachedThreadPool();
+	public final static ExecutorService worker = Executors.newCachedThreadPool();
 	
 	/**
 	 * Returns a random integer between 0 (inclusive) and n (exclusive). It
