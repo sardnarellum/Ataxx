@@ -31,10 +31,10 @@ public class Connection {
 	}
 	
 	/**
-	 * The underlying {@link Socket}'s remote IP address and its remote port number.
+	 * The underlying {@link Socket}'s remote port number.
 	 */
 	@Override
 	public String toString(){
-		return s.getInetAddress().toString() + ":" + s.getPort();		
+		return "" + s.getPort();		
 	}
 }

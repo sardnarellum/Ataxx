@@ -254,7 +254,7 @@ public class GameServer extends Controller implements GameObserver {
 				while (!stopped && !gameOver) {
 					try {
 						Command cmd = (Command) c.getObject();
-						log("[CMD: " + cmd.helpText() + "] " + c);
+						log("[" + c + "] " + cmd.helpText());
 						cmd.execute(GameServer.this);
 					} catch (ClassNotFoundException | IOException e) {
 						if (!stopped && !gameOver) {
@@ -283,10 +283,10 @@ public class GameServer extends Controller implements GameObserver {
 	}
 
 	private void forwardNotification(Response response) {
+		log("[FWN] " + response.getClass().getSimpleName());
 		for (Connection c : clients) {
 			try {
 				c.sendObject(response);
-				log("[FWN] " + c + " - " + response.getClass().getSimpleName());
 			} catch (IOException e) {
 				logError("Unable to send response to: " + c);
 			}

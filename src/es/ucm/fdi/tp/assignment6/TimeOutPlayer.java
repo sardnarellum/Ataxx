@@ -32,7 +32,6 @@ public class TimeOutPlayer extends Player {
 
 	@Override
 	public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {
-		//System.out.println(service);
 		Future<GameMove> f = Utils.worker.submit(new Callable<GameMove>() {
 			@Override
 			public GameMove call() throws Exception {
