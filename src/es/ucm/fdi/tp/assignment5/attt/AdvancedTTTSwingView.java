@@ -14,8 +14,11 @@ import es.ucm.fdi.tp.basecode.bgame.model.Observable;
 import es.ucm.fdi.tp.basecode.bgame.model.Pair;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
-@SuppressWarnings("serial")
 public class AdvancedTTTSwingView extends RectBoardSwingView {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private Pair<Integer, Integer> currentSource;
 
 	public AdvancedTTTSwingView(Observable<GameObserver> g, Controller c, Piece lp, Player randPlayer,
@@ -28,6 +31,11 @@ public class AdvancedTTTSwingView extends RectBoardSwingView {
 		if (1 == mouseBtn) {
 			if (getBoard().getPieceCount(getTurn()) > 0) {
 				Player player = new Player() {
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = 1L;
+
 					@Override
 					public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {
 						return new AdvancedTTTMove(row, col, row, col, p);
@@ -45,6 +53,11 @@ public class AdvancedTTTSwingView extends RectBoardSwingView {
 				} else {
 					addMsg("Destination: (" + row + "," + col + ")");
 					Player player = new Player() {
+						/**
+						 * 
+						 */
+						private static final long serialVersionUID = 1L;
+
 						@Override
 						public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {
 							return new AdvancedTTTMove(currentSource.getFirst(), currentSource.getSecond(), row, col,

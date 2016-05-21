@@ -46,7 +46,8 @@ public final class AtaxxCommon {
 	public static boolean playerCanMove(Board board, Piece piece) {
 		for (int i = 0; i < board.getRows(); ++i) {
 			for (int j = 0; j < board.getCols(); ++j) {
-				if (board.getPosition(i, j) == piece && emptyPlaceInRange(board, i, j)) {
+				if (board.getPosition(i, j) == piece
+						&& emptyPlaceInRange(board, i, j)) {
 					return true;
 				}
 			}
@@ -102,7 +103,7 @@ public final class AtaxxCommon {
 
 	/**
 	 * Finds and returns the coordinates of the empty fields in the distance of
-	 * two fiedls around the field referenced by ({@code row},{@code col}).
+	 * two fields around the field referenced by ({@code row},{@code col}).
 	 * 
 	 * @param board
 	 * @param row
@@ -111,7 +112,8 @@ public final class AtaxxCommon {
 	 *            The origin's column.
 	 * @return The list of the empty fields' coordinates.
 	 */
-	public static ArrayList<Pair<Integer, Integer>> emptyPlacesInRange(Board board, int row, int col) {
+	public static ArrayList<Pair<Integer, Integer>> emptyPlacesInRange(
+			Board board, int row, int col) {
 		ArrayList<Pair<Integer, Integer>> places = new ArrayList<Pair<Integer, Integer>>();
 		BoardRangeIterator it = new BoardRangeIterator(row, col, 2, board);
 
@@ -130,7 +132,8 @@ public final class AtaxxCommon {
 	 * @param board
 	 * @return The list of the coordinates.
 	 */
-	public static ArrayList<Pair<Integer, Integer>> emptyPlacesQuadrant(Board board) {
+	public static ArrayList<Pair<Integer, Integer>> emptyPlacesQuadrant(
+			Board board) {
 		ArrayList<Pair<Integer, Integer>> places = new ArrayList<Pair<Integer, Integer>>(); // Why
 																							// typedef
 																							// doesn't

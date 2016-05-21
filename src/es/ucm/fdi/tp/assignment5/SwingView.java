@@ -18,37 +18,49 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSlider;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.TableCellRenderer;
 
 import es.ucm.fdi.tp.assignment5.Main.PlayerMode;
+import es.ucm.fdi.tp.assignment6.LogArea;
+import es.ucm.fdi.tp.assignment6.TimeOutPlayer;
 import es.ucm.fdi.tp.basecode.bgame.Utils;
 import es.ucm.fdi.tp.basecode.bgame.control.Controller;
 import es.ucm.fdi.tp.basecode.bgame.control.Player;
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
 import es.ucm.fdi.tp.basecode.bgame.model.Game.State;
+import es.ucm.fdi.tp.basecode.bgame.model.GameError;
 import es.ucm.fdi.tp.basecode.bgame.model.GameObserver;
 import es.ucm.fdi.tp.basecode.bgame.model.Observable;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
-@SuppressWarnings("serial")
 public abstract class SwingView extends JFrame implements GameObserver {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public static final int DEFAULT_TIMEOUT = 5;
 
 	private Controller ctrl;
 	private Piece localPiece;
 	private Piece turn;
-	private Player randPlayer;
-	private Player aiPlayer;
+	private TimeOutPlayer randPlayer;
+	private TimeOutPlayer aiPlayer;
 	private Board board;
 	private List<Piece> pieces;
 	private Map<Piece, Color> pieceColors;
 	private Map<Piece, PlayerMode> playerModes;
-	private JTextArea messages;
+	private LogArea messages;
 	private JComboBox<String> playerColorsCB;
 	private JComboBox<String> playerModesCB;
 	private PlayerTableModel tmodel;
@@ -62,13 +74,13 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		ctrl = c;
 		localPiece = lp;
 		playerModes = new HashMap<Piece, PlayerMode>();
-		this.randPlayer = randPlayer;
-		this.aiPlayer = aiPlayer;
+		this.randPlayer = new TimeOutPlayer(randPlayer, DEFAULT_TIMEOUT);
+		this.aiPlayer = new TimeOutPlayer(aiPlayer, DEFAULT_TIMEOUT);
 		initGUI();
 	}
 
 	private void initGUI() {
-		messages = new JTextArea();
+		messages = new LogArea();
 		messages.setEditable(false);
 		messages.setLineWrap(true);
 		messages.setWrapStyleWord(true);
@@ -86,6 +98,11 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		tmodel = new PlayerTableModel();
 		JTable playerInfoTable = new JTable(tmodel) {
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public Component prepareRenderer(TableCellRenderer renderer, int row, int col) {
 				Component comp = super.prepareRenderer(renderer, row, col);
@@ -166,17 +183,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 				final Piece p = localPiece == null ? pieces.get(playerModesCB.getSelectedIndex()) : localPiece;
 				PlayerModeExt pme = (PlayerModeExt) modesCBox.getSelectedItem();
 				PlayerMode m = pme.getPlayerMode();
-				playerModes.put(p, m);
-				SwingUtilities.invokeLater(new Runnable() {
-					@Override
-					public void run() {
-						tmodel.setMode(p, m);
-						tmodel.refresh();
-						if (turn.equals(p)) {
-							decideMakeRndOrAutoMove();
-						}
-					}
-				});
+				setPlayerMode(p, m);
 			}
 
 		});
@@ -188,7 +195,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		JPanel autoOptions = new JPanel();
 		autoOptions.setBorder(BorderFactory.createTitledBorder(b, "Automatic Moves"));
 
-		randomBtn = new JButton("Random");
+		randomBtn = new JButton(PlayerMode.RANDOM.getDesc());
 		randomBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -196,7 +203,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			}
 		});
 
-		automaticBtn = new JButton("Automatic");
+		automaticBtn = new JButton(PlayerMode.AI.getDesc());
 		automaticBtn.addActionListener(new ActionListener() {
 
 			@Override
@@ -213,6 +220,31 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			autoOptions.add(automaticBtn);
 		}
 
+		JLabel secondsLabel = new JLabel("seconds", JLabel.CENTER);
+		secondsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+		JSlider timeoutSeconds = new JSlider(JSlider.HORIZONTAL, 0, 60, DEFAULT_TIMEOUT);
+		timeoutSeconds.setMajorTickSpacing(10);
+		timeoutSeconds.setMinorTickSpacing(1);
+		timeoutSeconds.setPaintTicks(true);
+		timeoutSeconds.setPaintLabels(true);
+
+		timeoutSeconds.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				JSlider source = (JSlider) e.getSource();
+				if (!source.getValueIsAdjusting()) {
+					setTimeOut(source.getValue());
+				}
+			}
+		});
+
+		JPanel timeoutOption = new JPanel();
+		timeoutOption.setBorder(BorderFactory.createTitledBorder(b, "Timeout"));
+		timeoutOption.setLayout(new BoxLayout(timeoutOption, BoxLayout.PAGE_AXIS));
+		timeoutOption.add(secondsLabel);
+		timeoutOption.add(timeoutSeconds);
+
 		JPanel quitRestartPanel = new JPanel();
 
 		exitBtn = new JButton("Exit");
@@ -227,7 +259,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		restartBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				ctrl.restart();
+				onRestart();
 			}
 		});
 
@@ -243,6 +275,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		if (null != randPlayer || null != aiPlayer) {
 			dashboardPanel.add(modes);
 			dashboardPanel.add(autoOptions);
+			dashboardPanel.add(timeoutOption);
 		}
 
 		dashboardPanel.add(quitRestartPanel);
@@ -257,6 +290,25 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(900, 600);
 		setVisible(true);
+	}
+
+	private void setPlayerMode(Piece piece, PlayerMode mode) {
+		playerModes.put(piece, mode);
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				tmodel.setMode(piece, mode);
+				tmodel.refresh();
+				if (turn.equals(piece)) {
+					decideMakeRndOrAutoMove();
+				}
+			}
+		});
+	}
+
+	private void setTimeOut(int seconds) {
+		aiPlayer.setTimeOut(seconds);
+		randPlayer.setTimeOut(seconds);
 	}
 
 	final protected Piece getTurn() {
@@ -297,42 +349,52 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	}
 
 	final protected void addMsg(String msg) {
-		if (messages.getText().length() == 0) {
-			messages.setText(msg);
-		} else {
-			messages.setText(messages.getText() + "\n" + msg);
-		}
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				messages.addLine(msg);
+			}
+		});
 	}
 
 	final protected void decideMakeManualMove(Player manualPlayer) {
-		try {
-			ctrl.makeMove(manualPlayer);
-		} catch (Exception e) {
-
-		}
+		propagateMovement(manualPlayer);
 	}
 
 	private void decideMakeRndOrAutoMove() {
-		try {
-			ctrl.makeMove(playerModes.get(turn) == PlayerMode.AI ? aiPlayer : randPlayer);
-		} catch (Exception e) {
-
+		switch (playerModes.get(turn)) {
+		case AI:
+			decideMakeAutomaticMove();
+			break;
+		case RANDOM:
+			decideMakeRandomMove();
+			break;
+		default:
+			break;
 		}
 	}
 
 	private void decideMakeAutomaticMove() {
-		try {
-			ctrl.makeMove(aiPlayer);
-		} catch (Exception e) {
-
-		}
+		propagateMovement(aiPlayer);
 	}
 
 	private void decideMakeRandomMove() {
-		try {
-			ctrl.makeMove(randPlayer);
-		} catch (Exception e) {
+		propagateMovement(randPlayer);
+	}
 
+	private void propagateMovement(final Player player) {
+		try {
+			setUIEnabled(false);
+			setExitRestartEnabled(false);
+			new SwingWorker<Void, Void>() {
+				@Override
+				protected Void doInBackground() throws Exception {
+					ctrl.makeMove(player);
+					return null;
+				}
+			}.execute();
+		} catch (GameError e) {
+			handleOnError(e.getMessage() + " turn is:" + turn);
 		}
 	}
 
@@ -403,6 +465,10 @@ public abstract class SwingView extends JFrame implements GameObserver {
 				handleOnError(msg);
 			}
 		});
+	}
+
+	protected void onRestart() {
+		ctrl.restart();
 	}
 
 	private void handleOnGameStart(Board board, String gameDesc, List<Piece> pieces) {
@@ -504,6 +570,11 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 	protected void handleOnError(String msg) {
 		addMsg("[Error] " + msg);
+		if (null == localPiece || localPiece.equals(turn)) {
+			setPlayerMode(turn, PlayerMode.MANUAL);
+			setUIEnabled(true);
+			setExitRestartEnabled(true);
+		}
 	}
 
 	private void printState(State state, Piece winner) {

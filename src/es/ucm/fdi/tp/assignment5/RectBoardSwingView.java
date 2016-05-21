@@ -8,9 +8,12 @@ import es.ucm.fdi.tp.basecode.bgame.model.GameObserver;
 import es.ucm.fdi.tp.basecode.bgame.model.Observable;
 import es.ucm.fdi.tp.basecode.bgame.model.Piece;
 
-@SuppressWarnings("serial")
 public abstract class RectBoardSwingView extends SwingView {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private BoardComponent boardComp;
 
 	public RectBoardSwingView(Observable<GameObserver> g, Controller c, Piece lp, Player randPlayer, Player aiPlayer) {
@@ -20,6 +23,11 @@ public abstract class RectBoardSwingView extends SwingView {
 	@Override
 	protected void initBoardGUI() {
 		boardComp = new BoardComponent() {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected Color getPieceColor(Piece p) {
