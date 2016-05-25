@@ -142,7 +142,7 @@ public class Main {
 	 *
 	 */
 	enum ApplicationMode {
-		NORMAL("normal", "Normal"), CLIENT("client", "Client"), SERVER("server", "Server");
+		NORMAL("normal", "Normal Mode"), CLIENT("client", "Client Mode"), SERVER("server", "Server Mode");
 
 		private String id;
 		private String desc;

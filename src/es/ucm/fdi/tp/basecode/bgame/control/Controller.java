@@ -72,7 +72,7 @@ public class Controller {
 	 * Finaliza el juego que se está ejecutando actualmente en este controlador,
 	 * que está referenciado por {@link #game}).
 	 */
-	public void stop() {
+	public void stopGame() {
 		if (game != null) {
 			game.stop();
 		}

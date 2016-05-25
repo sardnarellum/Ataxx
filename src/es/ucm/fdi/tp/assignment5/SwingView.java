@@ -300,17 +300,19 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	}
 
 	private void setPlayerMode(Piece piece, PlayerMode mode) {
-		playerModes.put(piece, mode);
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				tmodel.setMode(piece, mode);
-				tmodel.refresh();
-				if (turn.equals(piece)) {
-					decideMakeRndOrAutoMove();
+		if (!playerModes.get(piece).equals(mode)) {
+			playerModes.put(piece, mode);
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					tmodel.setMode(piece, mode);
+					tmodel.refresh();
+					if (turn.equals(piece)) {
+						decideMakeRndOrAutoMove();
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 
 	private void setTimeOut(int seconds) {
@@ -390,7 +392,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 	private void propagateMovement(final Player player) {
 		try {
-			if (null == player){
+			if (null == player) {
 				throw new GameError("The player parameter must be initialized.");
 			}
 			setManualControlEnabled(false);
@@ -609,8 +611,8 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			break;
 		}
 	}
-	
-	private void setPlayerSettingsUIEnabled(boolean enabled){
+
+	private void setPlayerSettingsUIEnabled(boolean enabled) {
 		playerColorsCB.setEnabled(enabled);
 		playerModesCB.setEnabled(enabled);
 		modesCBox.setEnabled(enabled);

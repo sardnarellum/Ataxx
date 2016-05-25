@@ -3,11 +3,11 @@ package es.ucm.fdi.tp.basecode.bgame.control.commands;
 import es.ucm.fdi.tp.basecode.bgame.control.Controller;
 
 /**
- * A 'QUIT' command. It executes {@link Controller#stop()} of the corresponding
+ * A 'QUIT' command. It executes {@link Controller#stopGame()} of the corresponding
  * controller.
  *
  * <p>
- * Comando 'QUIT'. Ejecuta el metodo {@link Controller#stop()} del controlador
+ * Comando 'QUIT'. Ejecuta el metodo {@link Controller#stopGame()} del controlador
  * correspondiente.
  */
 public class QuitCommand implements Command {
@@ -19,7 +19,7 @@ public class QuitCommand implements Command {
 
 	@Override
 	public void execute(Controller c) {
-		c.stop();
+		c.stopGame();
 	}
 
 	@Override

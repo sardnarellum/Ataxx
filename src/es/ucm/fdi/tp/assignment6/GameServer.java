@@ -38,7 +38,7 @@ public class GameServer extends Controller implements GameObserver {
 
 	volatile private List<Connection> clients;
 	volatile private ServerSocket server;
-	volatile private boolean stopped;
+	volatile private boolean serverStopped;
 	volatile private boolean gameOver;
 	volatile private boolean firstRun;
 
@@ -60,7 +60,7 @@ public class GameServer extends Controller implements GameObserver {
 	@Override
 	public void onGameOver(Board board, State state, Piece winner) {
 		forwardNotification(new GameOverResponse(board, state, winner));
-		stop();
+		stopGame();
 	}
 
 	@Override
@@ -92,20 +92,25 @@ public class GameServer extends Controller implements GameObserver {
 	}
 
 	@Override
-	public synchronized void stop() {
-		if (State.InPlay == game.getState()) {
-			super.stop();
-		}
-		gameOver = true;
-		for (Connection c : clients) {
-			try {
-				c.stop();
-				log("[Disconnect] " + c);
-			} catch (IOException e) {
-				logError("An error occured when tried to disconnect client " + c + ".");
+	public synchronized void stopGame() {
+		if (!gameOver) {
+			gameOver = true;
+			if (State.InPlay == game.getState()) {
+				super.stopGame();
+			}
+			for (Connection c : clients) {
+				try {
+					c.stop();
+					log("[Disconnect] " + c);
+				} catch (IOException e) {
+					logError("An error occured when tried to disconnect client " + c + ".");
+				}
+			}
+			clients.clear();
+			if (!serverStopped) {
+				log("[Restart] Waiting for new players...");
 			}
 		}
-		clients.clear();
 	}
 
 	@Override
@@ -195,14 +200,14 @@ public class GameServer extends Controller implements GameObserver {
 		try {
 			server = new ServerSocket(port);
 			clients = new ArrayList<Connection>();
-			stopped = false;
+			serverStopped = false;
 			log("[START] Waiting for a connections...");
-			while (!stopped) {
+			while (!serverStopped) {
 				Socket s = server.accept();
 				handleRequest(s);
 			}
 		} catch (IOException e) {
-			if (!stopped) {
+			if (!serverStopped) {
 				throw new IOException("Error while waiting for a connection: " + e.getMessage());
 			}
 		}
@@ -251,15 +256,15 @@ public class GameServer extends Controller implements GameObserver {
 		Thread t = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				while (!stopped && !gameOver) {
+				while (!serverStopped && !gameOver) {
 					try {
 						Command cmd = (Command) c.getObject();
 						log("[" + c + "] " + cmd.helpText());
 						cmd.execute(GameServer.this);
 					} catch (ClassNotFoundException | IOException e) {
-						if (!stopped && !gameOver) {
+						if (!serverStopped && !gameOver) {
 							logError("Unable to process command: " + e.getMessage());
-							stop();
+							stopGame();
 						}
 					} catch (Exception e) {
 						logError("Undexpected error: " + e.getMessage());
@@ -271,8 +276,8 @@ public class GameServer extends Controller implements GameObserver {
 	}
 
 	private void stopServer() throws GameError {
-		stopped = true;
-		stop();
+		serverStopped = true;
+		stopGame();
 		try {
 			server.close();
 			log("[STOP] Server shutdown.");
