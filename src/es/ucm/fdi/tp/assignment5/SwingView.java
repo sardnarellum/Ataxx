@@ -54,7 +54,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	private Controller ctrl;
 	private Piece localPiece;
 	private Piece turn;
-	private TimeOutPlayer randPlayer;
+	private Player randPlayer;
 	private TimeOutPlayer aiPlayer;
 	private Board board;
 	private List<Piece> pieces;
@@ -63,19 +63,22 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	private LogArea messages;
 	private JComboBox<String> playerColorsCB;
 	private JComboBox<String> playerModesCB;
+	private JComboBox<PlayerModeExt> modesCBox;
 	private PlayerTableModel tmodel;
 	private JButton randomBtn;
 	private JButton automaticBtn;
 	private JButton exitBtn;
 	private JButton restartBtn;
+	private JButton chooseColorBtn;
+	private JButton setModeBtn;
 
 	public SwingView(Observable<GameObserver> g, Controller c, Piece lp, Player randPlayer, Player aiPlayer) {
 		super();
 		ctrl = c;
 		localPiece = lp;
 		playerModes = new HashMap<Piece, PlayerMode>();
-		this.randPlayer = new TimeOutPlayer(randPlayer, DEFAULT_TIMEOUT);
-		this.aiPlayer = new TimeOutPlayer(aiPlayer, DEFAULT_TIMEOUT);
+		this.randPlayer = randPlayer;
+		this.aiPlayer = aiPlayer != null ? new TimeOutPlayer(aiPlayer, DEFAULT_TIMEOUT) : null;
 		initGUI();
 	}
 
@@ -129,7 +132,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		playerColorsCB = new JComboBox<String>();
 
-		JButton chooseColorBtn = new JButton("Choose Color");
+		chooseColorBtn = new JButton("Choose Color");
 		colors.add(playerColorsCB);
 		colors.add(chooseColorBtn);
 
@@ -161,7 +164,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		playerModesCB = new JComboBox<String>();
 
-		JComboBox<PlayerModeExt> modesCBox = new JComboBox<PlayerModeExt>();
+		modesCBox = new JComboBox<PlayerModeExt>();
 
 		if (null != randPlayer || null != aiPlayer) {
 			modesCBox.addItem(new PlayerModeExt(PlayerMode.MANUAL));
@@ -175,7 +178,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			}
 		}
 
-		JButton setModeBtn = new JButton("Set");
+		setModeBtn = new JButton("Set");
 		setModeBtn.addActionListener(new ActionListener() {
 
 			@Override
@@ -286,10 +289,14 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		mainPanel.setOpaque(true);
 
 		setContentPane(mainPanel);
-		initBoardGUI();
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(900, 600);
+		initBoardGUI();
+		setManualControlEnabled(false);
+		setExitRestartEnabled(false);
+		setPlayerSettingsUIEnabled(false);
 		setVisible(true);
+		addMsg("Please wait until the game is loaded...");
 	}
 
 	private void setPlayerMode(Piece piece, PlayerMode mode) {
@@ -308,7 +315,6 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 	private void setTimeOut(int seconds) {
 		aiPlayer.setTimeOut(seconds);
-		randPlayer.setTimeOut(seconds);
 	}
 
 	final protected Piece getTurn() {
@@ -384,7 +390,10 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 	private void propagateMovement(final Player player) {
 		try {
-			setUIEnabled(false);
+			if (null == player){
+				throw new GameError("The player parameter must be initialized.");
+			}
+			setManualControlEnabled(false);
 			setExitRestartEnabled(false);
 			new SwingWorker<Void, Void>() {
 				@Override
@@ -506,12 +515,14 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		tmodel.refresh();
 		redrawBoard();
-		activateBoard();
 		addMsg(gameDesc + " is started");
+		setManualControlEnabled(true);
+		setExitRestartEnabled(true);
+		setPlayerSettingsUIEnabled(true);
 	}
 
 	private void handleOnGameOver(State state, Piece winner) {
-		setUIEnabled(false);
+		setManualControlEnabled(false);
 		setExitRestartEnabled(true);
 		addMsg("GAME OVER");
 		printState(state, winner);
@@ -519,7 +530,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 	protected void handleOnMoveStart() {
 		setExitRestartEnabled(false);
-		setUIEnabled(false);
+		setManualControlEnabled(false);
 	}
 
 	protected void handleOnMoveEnd(Board board, boolean success) {
@@ -536,7 +547,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 
 		if (playerModes.get(turn) == PlayerMode.MANUAL) {
 			setExitRestartEnabled(true);
-			setUIEnabled(true);
+			setManualControlEnabled(true);
 		}
 	}
 
@@ -547,21 +558,21 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			if (localPiece.equals(turn)) {
 				addMsg("The next player is " + turn + " (You)");
 				if (playerModes.get(turn) == PlayerMode.MANUAL) {
-					setUIEnabled(true);
+					setManualControlEnabled(true);
 					setExitRestartEnabled(true);
 				} else {
 					decideMakeRndOrAutoMove();
 				}
 			} else {
 				setExitRestartEnabled(false);
-				setUIEnabled(false);
+				setManualControlEnabled(false);
 				addMsg("The next player is " + turn);
 			}
 		} else {
 			addMsg("The next player is " + turn);
 			if (playerModes.get(turn) == PlayerMode.MANUAL) {
 				setExitRestartEnabled(true);
-				setUIEnabled(true);
+				setManualControlEnabled(true);
 			} else {
 				decideMakeRndOrAutoMove();
 			}
@@ -572,7 +583,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		addMsg("[Error] " + msg);
 		if (null == localPiece || localPiece.equals(turn)) {
 			setPlayerMode(turn, PlayerMode.MANUAL);
-			setUIEnabled(true);
+			setManualControlEnabled(true);
 			setExitRestartEnabled(true);
 		}
 	}
@@ -598,8 +609,16 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			break;
 		}
 	}
+	
+	private void setPlayerSettingsUIEnabled(boolean enabled){
+		playerColorsCB.setEnabled(enabled);
+		playerModesCB.setEnabled(enabled);
+		modesCBox.setEnabled(enabled);
+		chooseColorBtn.setEnabled(enabled);
+		setModeBtn.setEnabled(enabled);
+	}
 
-	private void setUIEnabled(Boolean enabled) {
+	private void setManualControlEnabled(Boolean enabled) {
 		automaticBtn.setEnabled(enabled);
 		randomBtn.setEnabled(enabled);
 

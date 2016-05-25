@@ -100,12 +100,12 @@ public class GameServer extends Controller implements GameObserver {
 		for (Connection c : clients) {
 			try {
 				c.stop();
+				log("[Disconnect] " + c);
 			} catch (IOException e) {
 				logError("An error occured when tried to disconnect client " + c + ".");
 			}
 		}
 		clients.clear();
-		log("[OVER] Clients disconnected.");
 	}
 
 	@Override
@@ -124,6 +124,7 @@ public class GameServer extends Controller implements GameObserver {
 			startServer();
 		} catch (GameError | IOException e) {
 			logError("An error has occured when tried to start the server: " + e.getMessage());
+			System.exit(1);
 		}
 	}
 
@@ -168,7 +169,7 @@ public class GameServer extends Controller implements GameObserver {
 					stopServer();
 				} catch (GameError ex) {
 					status = 1;
-					System.err.println(ex.getMessage());
+					logError(ex.getMessage());
 				} finally {
 					System.exit(status);
 				}
@@ -185,7 +186,6 @@ public class GameServer extends Controller implements GameObserver {
 		JFrame window = new JFrame("Game Server");
 		window.setContentPane(contentPanel);
 		window.setPreferredSize(new Dimension(600, 300));
-		//window.setResizable(false);
 		window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		window.pack();
 		window.setVisible(true);
@@ -263,7 +263,6 @@ public class GameServer extends Controller implements GameObserver {
 						}
 					} catch (Exception e) {
 						logError("Undexpected error: " + e.getMessage());
-						e.printStackTrace();
 					}
 				}
 			}

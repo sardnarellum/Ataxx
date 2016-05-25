@@ -72,7 +72,6 @@ public class GameClient extends Controller implements Observable<GameObserver>, 
 				try {
 					server.stop();
 				} catch (IOException e) {
-					e.printStackTrace();
 				}
 			}
 
@@ -127,7 +126,6 @@ public class GameClient extends Controller implements Observable<GameObserver>, 
 			try {
 				server.sendObject(command);
 			} catch (IOException e) {
-				e.printStackTrace();
 			}
 		}
 	}

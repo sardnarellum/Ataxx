@@ -42,16 +42,14 @@ public class TimeOutPlayer extends Player {
 		try {
 			return f.get(to, TimeUnit.SECONDS);
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			throw new GameError("The execution of the movement has been interrupted: " + e.getMessage());
 		} catch (ExecutionException e) {
-			e.printStackTrace();
+			throw new GameError("An error occured while executing the movement: " + e.getMessage());
 		} catch (TimeoutException e) {
 			throw new GameError("The movement have not finished in " + to + " seconds.");
 		} finally {
 			f.cancel(true);
 		}
-
-		return null;
 	}
 
 	public void setTimeOut(int seconds) {

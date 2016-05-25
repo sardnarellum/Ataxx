@@ -77,7 +77,7 @@ public class Main {
 	 * Juegos disponibles.
 	 */
 	enum GameInfo {
-		ATAXX("ax", "Ataxx"), CONNECTN("cn", "ConnectN"), TicTacToe("ttt", "Tic-Tac-Toe"), AdvancedTicTacToe("attt", "Advanced Tic-Tac-Toe");
+		ATAXX("ataxx", "Ataxx"), CONNECTN("cn", "ConnectN"), TicTacToe("ttt", "Tic-Tac-Toe"), AdvancedTicTacToe("attt", "Advanced Tic-Tac-Toe");
 
 		private String id;
 		private String desc;
