@@ -39,7 +39,6 @@ public class AtaxxFactoryExt extends AtaxxFactory {
 				}
 			});
 		} catch (InvocationTargetException | InterruptedException e) {
-			e.printStackTrace();
 		}
 	}
 }

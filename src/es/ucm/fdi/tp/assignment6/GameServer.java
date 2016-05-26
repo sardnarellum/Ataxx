@@ -35,10 +35,10 @@ public class GameServer extends Controller implements GameObserver {
 	private final int numPlayers;
 	private GameFactory gameFactory;
 	private TimedLogArea logArea;
-
-	volatile private List<Connection> clients;
+	private List<Connection> clients;
+	
 	volatile private ServerSocket server;
-	volatile private boolean stopped;
+	volatile private boolean serverStopped;
 	volatile private boolean gameOver;
 	volatile private boolean firstRun;
 
@@ -93,19 +93,24 @@ public class GameServer extends Controller implements GameObserver {
 
 	@Override
 	public synchronized void stop() {
-		if (State.InPlay == game.getState()) {
-			super.stop();
-		}
-		gameOver = true;
-		for (Connection c : clients) {
-			try {
-				c.stop();
-			} catch (IOException e) {
-				logError("An error occured when tried to disconnect client " + c + ".");
+		if (!gameOver) {
+			gameOver = true;
+			if (State.InPlay == game.getState()) {
+				super.stop();
+			}
+			for (Connection c : clients) {
+				try {
+					c.stop();
+					log("[Disconnect] " + c);
+				} catch (IOException e) {
+					logError("An error occured when tried to disconnect client " + c + ".");
+				}
+			}
+			clients.clear();
+			if (!serverStopped) {
+				log("[Restart] Waiting for new players...");
 			}
 		}
-		clients.clear();
-		log("[OVER] Clients disconnected.");
 	}
 
 	@Override
@@ -124,6 +129,7 @@ public class GameServer extends Controller implements GameObserver {
 			startServer();
 		} catch (GameError | IOException e) {
 			logError("An error has occured when tried to start the server: " + e.getMessage());
+			System.exit(1);
 		}
 	}
 
@@ -168,7 +174,7 @@ public class GameServer extends Controller implements GameObserver {
 					stopServer();
 				} catch (GameError ex) {
 					status = 1;
-					System.err.println(ex.getMessage());
+					logError(ex.getMessage());
 				} finally {
 					System.exit(status);
 				}
@@ -182,10 +188,9 @@ public class GameServer extends Controller implements GameObserver {
 		contentPanel.add(stopBtn, BorderLayout.PAGE_END);
 		contentPanel.setOpaque(true);
 
-		JFrame window = new JFrame("Game Server");
+		JFrame window = new JFrame("Board Games Server: " + gameFactory.gameRules().gameDesc());
 		window.setContentPane(contentPanel);
 		window.setPreferredSize(new Dimension(600, 300));
-		//window.setResizable(false);
 		window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		window.pack();
 		window.setVisible(true);
@@ -195,14 +200,14 @@ public class GameServer extends Controller implements GameObserver {
 		try {
 			server = new ServerSocket(port);
 			clients = new ArrayList<Connection>();
-			stopped = false;
+			serverStopped = false;
 			log("[START] Waiting for a connections...");
-			while (!stopped) {
+			while (!serverStopped) {
 				Socket s = server.accept();
 				handleRequest(s);
 			}
 		} catch (IOException e) {
-			if (!stopped) {
+			if (!serverStopped) {
 				throw new IOException("Error while waiting for a connection: " + e.getMessage());
 			}
 		}
@@ -251,19 +256,18 @@ public class GameServer extends Controller implements GameObserver {
 		Thread t = new Thread(new Runnable() {
 			@Override
 			public void run() {
-				while (!stopped && !gameOver) {
+				while (!serverStopped && !gameOver) {
 					try {
 						Command cmd = (Command) c.getObject();
 						log("[" + c + "] " + cmd.helpText());
 						cmd.execute(GameServer.this);
 					} catch (ClassNotFoundException | IOException e) {
-						if (!stopped && !gameOver) {
+						if (!serverStopped && !gameOver) {
 							logError("Unable to process command: " + e.getMessage());
 							stop();
 						}
 					} catch (Exception e) {
 						logError("Undexpected error: " + e.getMessage());
-						e.printStackTrace();
 					}
 				}
 			}
@@ -272,7 +276,7 @@ public class GameServer extends Controller implements GameObserver {
 	}
 
 	private void stopServer() throws GameError {
-		stopped = true;
+		serverStopped = true;
 		stop();
 		try {
 			server.close();

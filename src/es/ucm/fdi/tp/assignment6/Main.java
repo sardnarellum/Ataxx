@@ -79,7 +79,7 @@ public class Main {
 	 * Juegos disponibles.
 	 */
 	enum GameInfo {
-		ATAXX("ax", "Ataxx"), CONNECTN("cn", "ConnectN"), TicTacToe("ttt", "Tic-Tac-Toe"), AdvancedTicTacToe("attt",
+		ATAXX("ataxx", "Ataxx"), CONNECTN("cn", "ConnectN"), TicTacToe("ttt", "Tic-Tac-Toe"), AdvancedTicTacToe("attt",
 				"Advanced Tic-Tac-Toe");
 
 		private String id;
@@ -142,7 +142,7 @@ public class Main {
 	 *
 	 */
 	enum ApplicationMode {
-		NORMAL("n", "Normal"), CLIENT("c", "Client"), SERVER("s", "Server");
+		NORMAL("normal", "Normal Mode"), CLIENT("client", "Client Mode"), SERVER("server", "Server Mode");
 
 		private String id;
 		private String desc;
@@ -511,10 +511,11 @@ public class Main {
 
 	private static Option constructAppModeOption() {
 		String helpText = "Sets the application running mode (";
+		String aggr = "";
 		for (ApplicationMode e : ApplicationMode.values()) {
-			helpText += " " + e.id + " [for " + e.desc + "]";
+			aggr += (aggr.length() == 0 ? "" : ", ") + e.id + " [for " + e.desc + "]";
 		}
-		helpText += "). By default, " + ApplicationMode.NORMAL.id + ".";
+		helpText += aggr + "). By default, " + ApplicationMode.NORMAL.id + ".";
 		Option opt = new Option("am", "app-mode", true, helpText);
 		opt.setArgName("id of app mode");
 		return opt;
@@ -1036,7 +1037,6 @@ public class Main {
 					gameFactory.createAIPlayer(aiPlayerAlg));
 			c.start();
 		} catch (Exception e) {
-			System.err.println("An unexpected error occured when tried to start the client: " + e.getMessage());
 		}
 	}
 

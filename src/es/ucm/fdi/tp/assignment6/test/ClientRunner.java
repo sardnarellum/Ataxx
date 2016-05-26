@@ -10,7 +10,7 @@ public class ClientRunner {
 	private static final int CLIENTS = 4;
 
 	public static void main(String[] args) {
-		String[] argsClient = {"-am", "c", "-aialg", "minmaxab", "-md", "5"};
+		String[] argsClient = {"-am", "client"};
 		List<Thread> clients = new ArrayList<Thread>();
 		
 		for (int i = 0; i < CLIENTS; ++i){
@@ -28,9 +28,7 @@ public class ClientRunner {
 		for (Thread t : clients){
 			try {
 				t.join();
-				System.out.println(t.getId() + " finished");
 			} catch (InterruptedException e) {
-				e.printStackTrace();
 			}
 		}
 	}
