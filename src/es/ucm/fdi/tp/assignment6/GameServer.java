@@ -35,8 +35,8 @@ public class GameServer extends Controller implements GameObserver {
 	private final int numPlayers;
 	private GameFactory gameFactory;
 	private TimedLogArea logArea;
-
-	volatile private List<Connection> clients;
+	private List<Connection> clients;
+	
 	volatile private ServerSocket server;
 	volatile private boolean serverStopped;
 	volatile private boolean gameOver;
