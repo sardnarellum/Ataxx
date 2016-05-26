@@ -60,7 +60,7 @@ public class GameServer extends Controller implements GameObserver {
 	@Override
 	public void onGameOver(Board board, State state, Piece winner) {
 		forwardNotification(new GameOverResponse(board, state, winner));
-		stopGame();
+		stop();
 	}
 
 	@Override
@@ -92,11 +92,11 @@ public class GameServer extends Controller implements GameObserver {
 	}
 
 	@Override
-	public synchronized void stopGame() {
+	public synchronized void stop() {
 		if (!gameOver) {
 			gameOver = true;
 			if (State.InPlay == game.getState()) {
-				super.stopGame();
+				super.stop();
 			}
 			for (Connection c : clients) {
 				try {
@@ -264,7 +264,7 @@ public class GameServer extends Controller implements GameObserver {
 					} catch (ClassNotFoundException | IOException e) {
 						if (!serverStopped && !gameOver) {
 							logError("Unable to process command: " + e.getMessage());
-							stopGame();
+							stop();
 						}
 					} catch (Exception e) {
 						logError("Undexpected error: " + e.getMessage());
@@ -277,7 +277,7 @@ public class GameServer extends Controller implements GameObserver {
 
 	private void stopServer() throws GameError {
 		serverStopped = true;
-		stopGame();
+		stop();
 		try {
 			server.close();
 			log("[STOP] Server shutdown.");

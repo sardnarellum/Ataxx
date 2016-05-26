@@ -112,7 +112,7 @@ public class GameClient extends Controller implements Observable<GameObserver>, 
 	}
 
 	@Override
-	public void stopGame() {
+	public void stop() {
 		forwardCommand(new QuitCommand());
 	}
 
