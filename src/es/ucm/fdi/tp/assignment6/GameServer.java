@@ -188,7 +188,7 @@ public class GameServer extends Controller implements GameObserver {
 		contentPanel.add(stopBtn, BorderLayout.PAGE_END);
 		contentPanel.setOpaque(true);
 
-		JFrame window = new JFrame("Game Server");
+		JFrame window = new JFrame("Board Games Server: " + gameFactory.gameRules().gameDesc());
 		window.setContentPane(contentPanel);
 		window.setPreferredSize(new Dimension(600, 300));
 		window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);

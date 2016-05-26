@@ -71,6 +71,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	private JButton restartBtn;
 	private JButton chooseColorBtn;
 	private JButton setModeBtn;
+	private boolean canMakeMove;
 
 	public SwingView(Observable<GameObserver> g, Controller c, Piece lp, Player randPlayer, Player aiPlayer) {
 		super();
@@ -79,6 +80,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 		playerModes = new HashMap<Piece, PlayerMode>();
 		this.randPlayer = randPlayer;
 		this.aiPlayer = aiPlayer != null ? new TimeOutPlayer(aiPlayer, DEFAULT_TIMEOUT) : null;
+		canMakeMove = true;
 		initGUI();
 	}
 
@@ -307,11 +309,13 @@ public abstract class SwingView extends JFrame implements GameObserver {
 				public void run() {
 					tmodel.setMode(piece, mode);
 					tmodel.refresh();
-					if (turn.equals(piece)) {
-						decideMakeRndOrAutoMove();
-					}
 				}
 			});
+			if (canMakeMove) {
+				if (turn.equals(piece)) {
+					decideMakeRndOrAutoMove();
+				}
+			}
 		}
 	}
 
@@ -395,6 +399,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			if (null == player) {
 				throw new GameError("The player parameter must be initialized.");
 			}
+			canMakeMove = false;
 			setManualControlEnabled(false);
 			setExitRestartEnabled(false);
 			new SwingWorker<Void, Void>() {
@@ -546,6 +551,8 @@ public abstract class SwingView extends JFrame implements GameObserver {
 			tmodel.refresh();
 			redrawBoard();
 		}
+		
+		canMakeMove = true;
 
 		if (playerModes.get(turn) == PlayerMode.MANUAL) {
 			setExitRestartEnabled(true);
@@ -584,6 +591,7 @@ public abstract class SwingView extends JFrame implements GameObserver {
 	protected void handleOnError(String msg) {
 		addMsg("[Error] " + msg);
 		if (null == localPiece || localPiece.equals(turn)) {
+			canMakeMove = true;
 			setPlayerMode(turn, PlayerMode.MANUAL);
 			setManualControlEnabled(true);
 			setExitRestartEnabled(true);
