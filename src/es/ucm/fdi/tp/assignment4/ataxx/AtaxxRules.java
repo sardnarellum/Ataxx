@@ -6,9 +6,9 @@ import java.util.List;
 import es.ucm.fdi.tp.assignment4.algorithm.GameAlgorithm;
 import es.ucm.fdi.tp.assignment4.algorithm.RangeAlgorithm;
 import es.ucm.fdi.tp.assignment4.algorithm.RangeOfTwoAlgorithm;
+import es.ucm.fdi.tp.assignment4.board.QuadrantBoard;
 import es.ucm.fdi.tp.basecode.bgame.Utils;
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
-import es.ucm.fdi.tp.basecode.bgame.model.FiniteRectBoard;
 import es.ucm.fdi.tp.basecode.bgame.model.Game.State;
 import es.ucm.fdi.tp.basecode.bgame.model.GameError;
 import es.ucm.fdi.tp.basecode.bgame.model.GameMove;
@@ -81,7 +81,7 @@ public class AtaxxRules implements GameRules {
 
 	@Override
 	public Board createBoard(List<Piece> pieces) {
-		FiniteRectBoard board = new FiniteRectBoard(dim, dim);
+		QuadrantBoard board = new QuadrantBoard(dim, dim);
 
 		board.setPosition(0, 0, pieces.get(0));
 		board.setPosition(dim - 1, dim - 1, pieces.get(0));
@@ -109,7 +109,7 @@ public class AtaxxRules implements GameRules {
 				q = 0;
 			} else {
 				Pair<Integer, Integer> p = l.get(Utils.randomInt(l.size()));
-				bAlgo.setInAllQuadrants(p.getFirst(), p.getSecond(), board, obstPiece);
+				board.setInAllQuadrants(p.getFirst(), p.getSecond(), obstPiece);
 				--q;
 			}
 		}

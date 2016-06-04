@@ -70,11 +70,4 @@ public interface BoardAlgorithm {
 
 		return places;
 	}
-
-	default void setInAllQuadrants(int row, int col, Board b, Piece p) {
-		b.setPosition(row, col, p);
-		b.setPosition(b.getRows() - row - 1, col, p);
-		b.setPosition(row, b.getCols() - col - 1, p);
-		b.setPosition(b.getRows() - row - 1, b.getCols() - col - 1, p);
-	}
 }
