@@ -3,9 +3,12 @@ package es.ucm.fdi.tp.assignment4.ataxx;
 import java.util.ArrayList;
 import java.util.List;
 
+import es.ucm.fdi.tp.assignment4.algorithm.GameAlgorithm;
+import es.ucm.fdi.tp.assignment4.algorithm.RangeAlgorithm;
+import es.ucm.fdi.tp.assignment4.algorithm.RangeOfTwoAlgorithm;
+import es.ucm.fdi.tp.assignment4.board.QuadrantBoard;
 import es.ucm.fdi.tp.basecode.bgame.Utils;
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
-import es.ucm.fdi.tp.basecode.bgame.model.FiniteRectBoard;
 import es.ucm.fdi.tp.basecode.bgame.model.Game.State;
 import es.ucm.fdi.tp.basecode.bgame.model.GameError;
 import es.ucm.fdi.tp.basecode.bgame.model.GameMove;
@@ -24,16 +27,17 @@ import es.ucm.fdi.tp.basecode.bgame.model.Piece;
  */
 public class AtaxxRules implements GameRules {
 
-	protected final Pair<State, Piece> gameInPlayResult = new Pair<State, Piece>(
-			State.InPlay, null);
+	protected final Pair<State, Piece> gameInPlayResult = new Pair<State, Piece>(State.InPlay, null);
 
-	protected final Pair<State, Piece> gameDrawResult = new Pair<State, Piece>(
-			State.Draw, null);
+	protected final Pair<State, Piece> gameDrawResult = new Pair<State, Piece>(State.Draw, null);
 
 	private final int dim;
 	private final int qObs;
 
 	private Piece obstPiece;
+
+	private RangeAlgorithm bAlgo;
+	private GameAlgorithm gAlgo;
 
 	/**
 	 * Initializes AtaxxRuless class with the dimension of the row and columns
@@ -46,6 +50,8 @@ public class AtaxxRules implements GameRules {
 	 *            must be at least 5 and an odd number
 	 */
 	public AtaxxRules(int qObstacles, int dim) {
+		this.bAlgo = new RangeOfTwoAlgorithm();
+		this.gAlgo = new AtaxxGameAlgorithm();
 
 		if (dim < 5) {
 			throw new GameError("Dimension must be at least 5: " + dim);
@@ -56,13 +62,12 @@ public class AtaxxRules implements GameRules {
 		}
 
 		if (qObstacles < 0) {
-			throw new GameError("The number of obstacles cannot be negative: "
-					+ qObstacles);
+			throw new GameError("The number of obstacles cannot be negative: " + qObstacles);
 		}
 
 		if (qObstacles >= Math.pow(dim / 2, 2)) {
-			throw new GameError("The number of obstacles (" + qObstacles
-					+ ") must less than " + (int) Math.pow(dim / 2, 2) + ".");
+			throw new GameError(
+					"The number of obstacles (" + qObstacles + ") must less than " + (int) Math.pow(dim / 2, 2) + ".");
 		}
 
 		this.dim = dim;
@@ -76,7 +81,7 @@ public class AtaxxRules implements GameRules {
 
 	@Override
 	public Board createBoard(List<Piece> pieces) {
-		FiniteRectBoard board = new FiniteRectBoard(dim, dim);
+		QuadrantBoard board = new QuadrantBoard(dim, dim);
 
 		board.setPosition(0, 0, pieces.get(0));
 		board.setPosition(dim - 1, dim - 1, pieces.get(0));
@@ -99,14 +104,12 @@ public class AtaxxRules implements GameRules {
 
 		int q = qObs;
 		while (q > 0) {
-			ArrayList<Pair<Integer, Integer>> l = AtaxxCommon
-					.emptyPlacesQuadrant(board);
+			ArrayList<Pair<Integer, Integer>> l = bAlgo.emptyPlacesQuadrant(board);
 			if (l.size() == 0) {
 				q = 0;
 			} else {
 				Pair<Integer, Integer> p = l.get(Utils.randomInt(l.size()));
-				AtaxxCommon.setInAllQuadrants(p.getFirst(), p.getSecond(),
-						board, obstPiece);
+				board.setInAllQuadrants(p.getFirst(), p.getSecond(), obstPiece);
 				--q;
 			}
 		}
@@ -136,36 +139,19 @@ public class AtaxxRules implements GameRules {
 	}
 
 	@Override
-	public Pair<State, Piece> updateState(Board board, List<Piece> pieces,
-			Piece turn) {
-		boolean canContinue = false;
-		canContinue = AtaxxCommon.gameCanContinue(board, pieces);
+	public Pair<State, Piece> updateState(Board board, List<Piece> pieces, Piece turn) {
+		boolean canContinue = bAlgo.anyPieceMovable(board, pieces);
 
 		if (!canContinue) {
-			Piece winner = pieces.get(0);
-			int highScore = AtaxxCommon.pieceOnBoardCount(board, winner);
-			boolean draw = false;
+			Piece winner = gAlgo.winner(board, pieces);
 
-			for (int i = 1; i < pieces.size(); ++i) {
-				Piece currP = pieces.get(i);
-				int currS = AtaxxCommon.pieceOnBoardCount(board, currP);
-
-				if (highScore < currS) {
-					winner = currP;
-					highScore = currS;
-					draw = false;
-				} else if (highScore == currS) {
-					draw = true;
-				}
-			}
-
-			if (draw) {
-				return gameDrawResult;
-			} else {
+			if (null != winner) {
 				return new Pair<State, Piece>(State.Won, winner);
+			} else {
+				return gameDrawResult;
 			}
 		} else {
-			Piece winner = AtaxxCommon.uniqueWinner(board, pieces);
+			Piece winner = bAlgo.onlyPieceOnBoard(board, pieces);
 
 			if (null != winner) {
 				return new Pair<State, Piece>(State.Won, winner);
@@ -182,7 +168,7 @@ public class AtaxxRules implements GameRules {
 		int c = pieces.size();
 		Piece p = pieces.get((i + 1) % pieces.size());
 
-		while (!AtaxxCommon.playerCanMove(board, p)) {
+		while (!bAlgo.pieceCanMove(board, p)) {
 			p = pieces.get((++i + 1) % pieces.size());
 
 			if (--c <= 0) {
@@ -194,17 +180,14 @@ public class AtaxxRules implements GameRules {
 	}
 
 	@Override
-	public List<GameMove> validMoves(Board board, List<Piece> playersPieces,
-			Piece turn) {
+	public List<GameMove> validMoves(Board board, List<Piece> playersPieces, Piece turn) {
 		List<GameMove> moves = new ArrayList<GameMove>();
 		for (int i = 0; i < board.getRows(); ++i) {
 			for (int j = 0; j < board.getCols(); ++j) {
 				if (turn.equals(board.getPosition(i, j))) {
-					List<Pair<Integer, Integer>> empties = AtaxxCommon
-							.emptyPlacesInRange(board, i, j);
+					List<Pair<Integer, Integer>> empties = bAlgo.emptyPlacesInRange(board, i, j);
 					for (Pair<Integer, Integer> e : empties) {
-						moves.add(new AtaxxMove(i, j, e.getFirst(), e
-								.getSecond(), turn));
+						moves.add(new AtaxxMove(i, j, e.getFirst(), e.getSecond(), turn));
 					}
 				}
 			}
@@ -214,11 +197,11 @@ public class AtaxxRules implements GameRules {
 
 	@Override
 	public double evaluate(Board board, List<Piece> pieces, Piece turn, Piece p) {
-		double n = AtaxxCommon.pieceOnBoardCount(board, turn);
+		double n = bAlgo.pieceOnBoardCount(board, turn);
 		double m = 0;
 
 		for (Piece e : pieces) {
-			m += !e.equals(p) ? AtaxxCommon.pieceOnBoardCount(board, e) : 0;
+			m += !e.equals(p) ? bAlgo.pieceOnBoardCount(board, e) : 0;
 		}
 
 		double s = n + m;

@@ -2,6 +2,8 @@ package es.ucm.fdi.tp.assignment4.ataxx;
 
 import java.util.List;
 
+import es.ucm.fdi.tp.assignment4.algorithm.RangeAlgorithm;
+import es.ucm.fdi.tp.assignment4.algorithm.RangeOfTwoAlgorithm;
 import es.ucm.fdi.tp.basecode.bgame.Utils;
 import es.ucm.fdi.tp.basecode.bgame.control.Player;
 import es.ucm.fdi.tp.basecode.bgame.model.Board;
@@ -17,7 +19,8 @@ public class AtaxxRandomPlayer extends Player {
 
 	@Override
 	public GameMove requestMove(Piece p, Board board, List<Piece> pieces, GameRules rules) {
-		if (!AtaxxCommon.playerCanMove(board, p)) {
+		RangeAlgorithm algo = new RangeOfTwoAlgorithm();
+		if (!algo.pieceCanMove(board, p)) {
 			throw new GameError(p.getId() + "cannot make a random move!!");
 		}
 
@@ -34,7 +37,7 @@ public class AtaxxRandomPlayer extends Player {
 			Piece q = board.getPosition(currRow, currCol);
 			if (null != q) {
 				if (board.getPosition(currRow, currCol).equals(p)) {
-					List<Pair<Integer, Integer>> l = AtaxxCommon.emptyPlacesInRange(board, currRow, currCol);
+					List<Pair<Integer, Integer>> l = algo.emptyPlacesInRange(board, currRow, currCol);
 
 					int emptyPlaces = l.size();
 
